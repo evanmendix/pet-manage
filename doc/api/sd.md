@@ -1,43 +1,74 @@
-# 系統設計 (API)
+# 系統設計 (API) - Kotlin/Ktor
 
-## 後端 API 設計
+## 1. 技術棧 (Tech Stack)
 
-*   **端點 (Endpoints) 規劃 (以 `/api/v1` 為前綴)**:
-    *   `POST /users`: 建立新使用者。
-    *   `PUT /users/{userId}`: 更新使用者名稱與大頭貼 `URL`。
-    *   `POST /feedings`: 新增一筆餵食紀錄。
-    *   `GET /feedings?limit=30`: 取得最近的餵食紀錄。
-    *   `GET /status/current`: 取得當前早餐/晚餐的餵食狀態。
-    *   `POST /pets/{petId}/weights`: 新增一筆體重紀錄。
-    *   `GET /pets/{petId}/weights`: 取得歷史體重紀錄。
-    *   `GET /albums/photos`: 取得相簿的所有照片 `URL`。
-*   **安全性**:
-    *   所有 `API` 請求的 `Header` 中必須包含由 `Firebase Authentication` 簽發的 `Authorization: Bearer <ID_TOKEN>`。
-    *   後端 `API` 服務會使用 `Firebase Admin SDK` 驗證此 `Token` 的有效性，確保只有登入的家庭成員可以存取數據。
+*   **語言 (Language)**: `Kotlin`
+*   **框架 (Framework)**: `Ktor`
+*   **建置工具 (Build Tool)**: `Gradle` with Kotlin DSL (`build.gradle.kts`)
+*   **伺服器引擎 (Engine)**: `Netty`
+*   **非同步處理 (Asynchrony)**: `Kotlin Coroutines`
+*   **資料庫 (Database)**: `Google Firestore`
+*   **認證 (Authentication)**: `Firebase Authentication`
 
-## 資料庫設計 (Firestore Schema)
+## 2. 專案結構 (Project Structure)
+
+```
+backend/
+├── build.gradle.kts
+├── settings.gradle.kts
+└── src/
+    └── main/
+        └── kotlin/
+            └── com/example/  // 我們的根 package
+                ├── Application.kt      // Ktor 伺服器進入點與模組設定
+                ├── plugins/            // Ktor 外掛設定 (Routing, Serialization)
+                ├── security/           // Firebase 認證相關
+                ├── features/           // 各功能模組 (e.g., feedings, users)
+                │   ├── feeding/
+                │   │   ├── FeedingController.kt
+                │   │   ├── FeedingService.kt
+                │   │   └── Feeding.kt  // Data Class
+                │   └── user/
+                │       └── ...
+                └── core/               // 核心服務
+                    └── FirebaseAdmin.kt // Firebase Admin SDK 初始化
+```
+
+## 3. API 端點設計 (API Endpoint Design)
+
+API 端點維持不變，前綴為 `/api/v1`。
+
+*   `POST /users`: 建立新使用者。
+*   `PUT /users/{userId}`: 更新使用者資訊。
+*   `POST /feedings`: 新增餵食紀錄。
+*   `GET /feedings?limit=30`: 取得最近的餵食紀錄。
+*   `GET /status/current`: 取得當前餵食狀態。
+*   `POST /pets/{petId}/weights`: 新增體重紀錄。
+*   `GET /pets/{petId}/weights`: 取得歷史體重紀錄。
+*   `GET /albums/photos`: 取得相簿照片。
+
+## 4. 認證機制 (Authentication)
+
+*   所有需保護的 API 請求，其 `Authorization` Header 必須包含由 `Firebase Authentication` 簽發的 `Bearer <ID_TOKEN>`。
+*   Ktor 將會有一個認證 `plugin`，它會攔截請求，並使用 `Firebase Admin SDK` 來驗證 `ID Token` 的有效性。驗證成功後，會將使用者的 `UID` 等資訊附加到請求中，供後續的業務邏輯使用。
+
+## 5. 資料庫設計 (Firestore Schema)
+
+資料庫結構維持不變，繼續使用 `Firestore`。
 
 *   **Collection: `families`**
     *   **Document: `{familyId}`**
         *   **Collection: `users`**
             *   **Document: `{userId}`** (來自 `Firebase Auth` 的 `UID`)
                 *   `name`: String
-                *   `profilePictureUrl`: String (指向 `Cloud Storage` 的 `URL`)
-                *   `fcmToken`: String (用於推播的裝置 `Token`)
+                *   `profilePictureUrl`: String
+                *   `fcmToken`: String
         *   **Collection: `pets`**
             *   **Document: `{petId}`**
-                *   `name`: String
-                *   `birthdate`: Timestamp
-                *   `profileImageUrl`: String
+                *   ... (寵物資料)
                 *   **Collection: `feedings`**
                     *   **Document: `{feedingId}`**
-                        *   `feederId`: String (關聯到 `users` 的 `{userId}`)
-                        *   `feederName`: String (冗餘欄位，方便查詢)
-                        *   `feederProfilePictureUrl`: String (冗餘欄位，方便查詢)
-                        *   `feedType`: String (`"meal"` / `"snack"`)
-                        *   `timestamp`: Timestamp
-                        *   `photoUrl`: String
+                        *   ... (餵食紀錄)
                 *   **Collection: `weights`**
                     *   **Document: `{weightId}`**
-                        *   `timestamp`: Timestamp
-                        *   `weightInKg`: Number
+                        *   ... (體重紀錄)

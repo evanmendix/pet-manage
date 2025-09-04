@@ -19,7 +19,7 @@
 ### 2.1 架構圖
 
 `[Android App] <--> [網際網路] <--> [Cloudflare Tunnel] <--> [後端 API 服務] <--> [Firebase 服務]`
-                                                              `(Node.js/Express)`     `(Firestore, Storage, Auth)`
+                                                              `(Kotlin/Ktor)`       `(Firestore, Storage, Auth)`
 
 ### 2.2 組件說明
 

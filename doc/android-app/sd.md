@@ -2,15 +2,16 @@
 
 ## App 架構
 
-*   **架構模式**: **MVVM (Model-View-ViewModel)**
-*   **數據流**: `View` (`Activity`/`Fragment`) -> `ViewModel` -> `Repository` -> `Retrofit Client` -> **後端 API 服務**。
-*   **關鍵模組**:
-    *   `ui`: 介面層，包含所有 `Activity`, `Fragment`, `WidgetProvider`。
-    *   `data`:
-        *   `repository`: 封裝所有數據操作，決定是呼叫 `API` 還是直接操作 `Firebase` (如檔案上傳)。
-        *   `remote`: 包含 `Retrofit` 的 `API interface` 定義與 `client` 實作。
-        *   `model`: 定義 `App` 內使用的數據類別。
-    *   `util`: 工具層，包含 `Shortcut` 管理、圖片處理等。
+*   **語言 (Language)**: `Kotlin`
+*   **架構模式 (Pattern)**: **MVVM (Model-View-ViewModel)**，基於 Google 官方推薦的應用程式架構指南。
+*   **核心函式庫 (Key Libraries)**:
+    *   **UI**: `Jetpack Compose` (建議用於新畫面) 或 `Android Views` 搭配 `View Binding`。
+    *   **非同步處理**: `Kotlin Coroutines` 與 `Flow`，用於管理背景任務和響應式地更新 UI。
+    *   **依賴注入**: `Hilt`，用於管理整個 App 的依賴關係。
+    *   **網路請求**: `Retrofit` 與 `OkHttp`，用於和後端 Ktor API 進行通訊。
+    *   **JSON 解析**: `kotlinx.serialization` 或 `Moshi`。
+    *   **圖片載入**: `Coil`，一個現代化的圖片載入函式庫，對 Coroutines 支援良好。
+    *   **ViewModel**: `Jetpack ViewModel`，用於儲存和管理與 UI 相關的資料。
 
 ## Android 系統整合
 

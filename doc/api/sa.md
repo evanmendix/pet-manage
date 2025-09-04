@@ -5,7 +5,7 @@
 *   **網路通道 (Network Tunnel)**:
     *   **Cloudflare Tunnel**: 負責建立一個從後端伺服器到 `Cloudflare` 網路的安全連線。這使得在家中或任何地方運行的伺服器，都能安全地對外提供服務，無需公有 `IP` 或複雜的防火牆設定。
 *   **後端 API 服務 (Backend API Service)**:
-    *   **技術棧**: 建議使用 **Node.js + Express.js** 框架，搭配 **Firebase Admin SDK**。
+    *   **技術棧**: 使用 **Kotlin + Ktor** 框架，搭配 **Firebase Admin SDK (Java)**。
     *   **核心職責**:
         *   處理所有業務邏輯 (例如：檢查是否重複餵食、產生異常報告)。
         *   提供 `RESTful API` 端點供客戶端呼叫。
