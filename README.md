@@ -32,4 +32,4 @@
 *   **Firebase 服務 (Backend as a Service - BaaS)**:
     *   提供資料庫、檔案儲存及身份驗證功能。
 
-> 如需更詳細的文件，請參閱 `android-app/` 和 `api/` 目錄。
+> 如需更詳細的文件，請參閱 `doc/` 目錄中的詳細文件。
