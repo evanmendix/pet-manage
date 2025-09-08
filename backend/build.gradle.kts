@@ -28,7 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jvm")
 
     // Firebase Admin SDK
-    implementation("com.google.firebase:firebase-admin:9.3.0")
+    implementation("com.google.firebase:firebase-admin:9.5.0")
 
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.6")
