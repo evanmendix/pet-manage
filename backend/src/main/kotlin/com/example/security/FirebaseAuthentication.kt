@@ -6,29 +6,43 @@ import io.ktor.server.auth.*
 
 data class FirebaseUser(val uid: String, val name: String?, val email: String?) : Principal
 
-fun AuthenticationConfig.firebase(name: String? = null) {
-    val provider = object : AuthenticationProvider(name) {
-        override suspend fun onAuthenticate(context: AuthenticationContext) {
-            val token = context.call.request.headers["Authorization"]?.removePrefix("Bearer ")
-            if (token == null) {
-                context.challenge("Firebase", AuthenticationFailedCause.NoCredentials) {
-                    it.success()
-                }
-                return
-            }
+class FirebaseAuthenticationProvider(config: Config) : AuthenticationProvider(config) {
+    private val principle: suspend (FirebaseToken) -> Principal? = config.principal
 
-            try {
-                val decodedToken: FirebaseToken = FirebaseAuth.getInstance().verifyIdToken(token)
-                val uid = decodedToken.uid
-                val name = decodedToken.name
-                val email = decodedToken.email
-                context.principal(FirebaseUser(uid, name, email))
-            } catch (e: Exception) {
-                context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid token")) {
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val token = context.call.request.headers["Authorization"]?.removePrefix("Bearer ")
+        if (token == null) {
+            context.challenge("Firebase", AuthenticationFailedCause.NoCredentials) {
+                it.success()
+            }
+            return
+        }
+
+        try {
+            val decodedToken: FirebaseToken = FirebaseAuth.getInstance().verifyIdToken(token)
+            val principal = principle(decodedToken)
+            if (principal != null) {
+                context.principal(principal)
+            } else {
+                context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid principal")) {
                     it.success()
                 }
+            }
+        } catch (e: Exception) {
+            context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid token: ${e.message}")) {
+                it.success()
             }
         }
     }
+
+    class Config(name: String?) : AuthenticationProvider.Config(name) {
+        var principal: suspend (FirebaseToken) -> Principal? = { token ->
+            FirebaseUser(token.uid, token.name, token.email)
+        }
+    }
+}
+
+fun AuthenticationConfig.firebase(name: String? = null, configure: FirebaseAuthenticationProvider.Config.() -> Unit = {}) {
+    val provider = FirebaseAuthenticationProvider(FirebaseAuthenticationProvider.Config(name).apply(configure))
     register(provider)
 }
