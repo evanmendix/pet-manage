@@ -12,9 +12,7 @@ class FirebaseAuthenticationProvider(config: Config) : AuthenticationProvider(co
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val token = context.call.request.headers["Authorization"]?.removePrefix("Bearer ")
         if (token == null) {
-            context.challenge("Firebase", AuthenticationFailedCause.NoCredentials) {
-                it.success()
-            }
+            context.challenge("Firebase", AuthenticationFailedCause.NoCredentials)
             return
         }
 
@@ -24,14 +22,10 @@ class FirebaseAuthenticationProvider(config: Config) : AuthenticationProvider(co
             if (principal != null) {
                 context.principal(principal)
             } else {
-                context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid principal")) {
-                    it.success()
-                }
+                context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid principal"))
             }
         } catch (e: Exception) {
-            context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid token: ${e.message}")) {
-                it.success()
-            }
+            context.challenge("Firebase", AuthenticationFailedCause.Error("Invalid token: ${e.message}"))
         }
     }
 
