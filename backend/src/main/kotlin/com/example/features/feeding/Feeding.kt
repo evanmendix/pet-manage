@@ -10,3 +10,10 @@ data class Feeding(
     val type: String, // "meal" or "snack"
     val photoUrl: String? = null
 )
+
+@Serializable
+data class FeedingStatusResponse(
+    val isFed: Boolean,
+    val message: String,
+    val lastFeeding: Feeding? = null
+)
