@@ -15,6 +15,7 @@ object FirebaseAdmin {
         try {
             val options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
+                .setProjectId("pet-manage-wu")
                 .build()
 
             FirebaseApp.initializeApp(options)
