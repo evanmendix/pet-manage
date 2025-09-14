@@ -13,8 +13,8 @@
     *   `PUT /users/{userId}`: 更新使用者資訊。
     *   `POST /feedings`: 新增餵食紀錄。
     *   `GET /feedings`: 取得最近的餵食紀錄。
-*   **待辦功能**:
     *   `GET /status/current`: 取得當前餵食狀態 (對應 US-04)。
+*   **待辦功能**:
     *   `POST /pets/{petId}/weights`: 新增體重紀錄 (對應 US-07)。
     *   `GET /pets/{petId}/weights`: 取得歷史體重紀錄 (對應 US-07)。
     *   `GET /albums/photos`: 取得相簿照片 (對應 US-08)。
@@ -22,8 +22,9 @@
 
 ### 前端 App (Frontend - Android)
 
-*   **狀態**: 尚未開始。
-*   目前只有設計與規格文件 (`doc/android-app/`)，尚未建立任何專案或撰寫程式碼。
+*   **狀態**: 基礎架構完成。
+*   已建立 Android 專案，並整合了 MVVM, Hilt, Retrofit, Compose 等核心技術。
+*   已完成基礎的「餵食狀態檢查」與「執行餵食」功能串接，但僅有基礎 UI。
 
 ---
 

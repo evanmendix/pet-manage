@@ -1,1 +1,26 @@
-.idea/*
+# Created by Jules - Standard Android/Gradle ignores
+# Built application files
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Built C/C++ libraries
+*.so
+
+# Android Studio / Gradle
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+.idea/workspace.xml
+.idea/libraries/
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.iml
+*~
+captures.PNG
