@@ -2,8 +2,11 @@ package com.example.catfeeder.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
+import com.example.catfeeder.data.UserManager
 import com.example.catfeeder.data.model.Feeding
 import com.example.catfeeder.data.repository.FeedingRepository
+import com.example.catfeeder.data.repository.StorageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,46 +15,66 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: FeedingRepository
+    private val feedingRepository: FeedingRepository,
+    private val storageRepository: StorageRepository,
+    private val userManager: UserManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Loading)
     val uiState: StateFlow<MainUiState> = _uiState
 
     init {
-        checkInitialStatus()
+        loadInitialData()
     }
 
-    private fun checkInitialStatus() {
+    private fun loadInitialData() {
         viewModelScope.launch {
+            _uiState.value = MainUiState.Loading
             try {
-                val status = repository.getFeedingStatus()
-                _uiState.value = MainUiState.Success(status.message)
+                val feedings = feedingRepository.getFeedings()
+                val status = feedingRepository.getFeedingStatus()
+                _uiState.value = MainUiState.Success(status.message, feedings)
             } catch (e: Exception) {
                 _uiState.value = MainUiState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
 
-    fun onFeedMealClicked() {
+    fun onFeedMealClicked(photoUri: Uri? = null) {
         viewModelScope.launch {
             _uiState.value = MainUiState.Loading
             try {
                 // First, check the status again to prevent race conditions
-                val statusResponse = repository.getFeedingStatus()
+                val statusResponse = feedingRepository.getFeedingStatus()
                 if (statusResponse.isFed) {
-                    _uiState.value = MainUiState.Success(statusResponse.message)
+                    val feedings = feedingRepository.getFeedings()
+                    _uiState.value = MainUiState.Success(statusResponse.message, feedings)
                     return@launch
                 }
 
+                val photoUrl = if (photoUri != null) {
+                    storageRepository.uploadImage(photoUri)
+                } else {
+                    null
+                }
+
                 // If not fed, proceed to add a new feeding record
+                val userId = userManager.currentUser?.id
+                if (userId == null) {
+                    _uiState.value = MainUiState.Error("User not logged in")
+                    return@launch
+                }
                 val newFeeding = Feeding(
-                    userId = "user-placeholder", // This should be replaced with the actual user ID
+                    userId = userId,
                     timestamp = System.currentTimeMillis(),
-                    type = "meal"
+                    type = "meal",
+                    photoUrl = photoUrl
                 )
-                repository.addFeeding(newFeeding)
-                _uiState.value = MainUiState.Success("Successfully fed the cat!")
+                feedingRepository.addFeeding(newFeeding)
+
+                // Refresh the list
+                val feedings = feedingRepository.getFeedings()
+                _uiState.value = MainUiState.Success("Successfully fed the cat!", feedings)
 
             } catch (e: Exception) {
                 _uiState.value = MainUiState.Error(e.message ?: "An unknown error occurred")
@@ -63,6 +86,9 @@ class MainViewModel @Inject constructor(
 // Represents the different states for the UI
 sealed interface MainUiState {
     object Loading : MainUiState
-    data class Success(val message: String) : MainUiState
+    data class Success(
+        val message: String,
+        val feedings: List<Feeding> = emptyList()
+    ) : MainUiState
     data class Error(val errorMessage: String) : MainUiState
 }

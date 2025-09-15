@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class Feeding(
     val id: String? = null,
     val userId: String,
+    val user: User? = null, // Include user info
     val timestamp: Long,
     val type: String, // "meal" or "snack"
     val photoUrl: String? = null

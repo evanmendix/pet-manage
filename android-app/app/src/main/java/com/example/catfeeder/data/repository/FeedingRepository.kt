@@ -11,4 +11,6 @@ class FeedingRepository @Inject constructor(private val apiService: ApiService) 
     suspend fun getFeedingStatus() = apiService.getFeedingStatus()
 
     suspend fun addFeeding(feeding: Feeding) = apiService.addFeeding(feeding)
+
+    suspend fun getFeedings(): List<Feeding> = apiService.getFeedings()
 }
