@@ -22,11 +22,11 @@
 
 *   **目標**: 使用者能在 App 中完成個人資料設定，並記錄與查看餵食歷史。
 *   **任務**:
-    1.  **API**:
-        *   實作餵食相關的 `API` 端點 (`POST /feedings`, `GET /feedings`, `GET /status/current`)。
-        *   加入「重複餵食」的檢查邏輯。
-    2.  **Android App**:
-        *   **專案設定**: 初始化 `Android` 專案，整合 `Hilt`, `Retrofit`, `Coil` 等核心函式庫。
+    1.  **API (已完成)**:
+        *   [x] 實作餵食相關的 `API` 端點 (`POST /feedings`, `GET /feedings`, `GET /status/current`)。
+        *   [x] 加入「重複餵食」的檢查邏輯。
+    2.  **Android App (進行中)**:
+        *   [ ] **專案設定**: 初始化 `Android` 專案，整合 `Hilt`, `Retrofit`, `Coil` 等核心函式庫。
         *   **首次啟動流程**: 實作「首次啟動」的個人資料設定畫面 (`US-01`)。
         *   **主畫面**: 實作主畫面，用於顯示最近的餵食紀錄 (`US-05`)。
         *   **記錄功能**: 實作基礎的餵食記錄功能 (暫不含相機與快捷功能)。
