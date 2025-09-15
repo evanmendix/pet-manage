@@ -10,8 +10,10 @@
 build/
 out/
 
+# Allow the gradle wrapper jar file to be committed
+!backend/gradle/wrapper/gradle-wrapper.jar
+
 # Build artifacts
-*.jar
 *.war
 *.ear
 *.apk
