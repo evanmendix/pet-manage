@@ -1,1 +1,39 @@
+# IDE files & directories
+.idea/
+.windsurf/
+.cursor/
+.claude/
+.vscode/
+
+# Gradle
+.gradle/
+build/
+out/
+
+# Allow the gradle wrapper jar file to be committed
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# Build artifacts
+*.war
+*.ear
+*.apk
+*.aab
+*.ap_
+*.apks
+*.dex
+
+# OS-specific files
+.DS_Store
+*~
+
+# Local configuration
+# IMPORTANT: This file may contain secrets. Do not commit it.
+.env
+local.properties
+
+# Android
+/captures/
+.cxx/
+*.keystore
+*.jks
 .idea/*
