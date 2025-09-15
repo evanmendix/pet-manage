@@ -1,9 +1,9 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    kotlin("android")
+    kotlin("kapt")
     id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
+    kotlin("plugin.serialization")
 }
 
 android {
