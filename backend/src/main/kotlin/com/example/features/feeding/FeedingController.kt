@@ -1,5 +1,7 @@
 package com.example.features.feeding
 
+import com.example.features.feeding.DuplicateFeedingException
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -12,9 +14,24 @@ fun Route.feedingRoutes() {
         get {
             call.respond(feedingService.getRecentFeedings())
         }
+
+        get("/status/current") {
+            val currentStatus = feedingService.getCurrentStatus()
+            if (currentStatus != null) {
+                call.respond(currentStatus)
+            } else {
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
         post {
-            val feeding = call.receive<Feeding>()
-            call.respond(feedingService.addFeeding(feeding))
+            try {
+                val feeding = call.receive<Feeding>()
+                val newFeeding = feedingService.addFeeding(feeding)
+                call.respond(HttpStatusCode.Created, newFeeding)
+            } catch (e: DuplicateFeedingException) {
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to (e.message ?: "Duplicate feeding detected")))
+            }
         }
     }
 }
