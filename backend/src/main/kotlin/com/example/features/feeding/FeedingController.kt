@@ -7,21 +7,25 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.feedingRoutes() {
+fun Route.publicFeedingRoutes() {
+    val feedingService = FeedingService()
+
+    get("/status/current") {
+        val currentStatus = feedingService.getCurrentStatus()
+        if (currentStatus != null) {
+            call.respond(currentStatus)
+        } else {
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
+
+fun Route.privateFeedingRoutes() {
     val feedingService = FeedingService()
 
     route("/feedings") {
         get {
             call.respond(feedingService.getRecentFeedings())
-        }
-
-        get("/status/current") {
-            val currentStatus = feedingService.getCurrentStatus()
-            if (currentStatus != null) {
-                call.respond(currentStatus)
-            } else {
-                call.respond(HttpStatusCode.NoContent)
-            }
         }
 
         post {
