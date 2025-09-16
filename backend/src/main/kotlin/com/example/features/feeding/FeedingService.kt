@@ -2,6 +2,7 @@ package com.example.features.feeding
 
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Query
+import com.google.cloud.firestore.QueryDocumentSnapshot
 import com.google.firebase.cloud.FirestoreClient
 import java.util.UUID
 
@@ -16,10 +17,20 @@ class FeedingService {
     // to support multi-pet and multi-family scenarios, as documented in `doc/api/sd.md`.
     private val feedingsCollection = db.collection("feedings")
 
+    private fun documentToFeeding(doc: QueryDocumentSnapshot): Feeding {
+        return Feeding(
+            id = doc.getString("id"),
+            userId = doc.getString("userId") ?: "",
+            timestamp = doc.getLong("timestamp") ?: 0L,
+            type = doc.getString("type") ?: "",
+            photoUrl = doc.getString("photoUrl")
+        )
+    }
+
     fun getRecentFeedings(): List<Feeding> {
         val query = feedingsCollection.orderBy("timestamp", Query.Direction.DESCENDING).limit(30)
         val querySnapshot = query.get().get()
-        return querySnapshot.documents.mapNotNull { it.toObject(Feeding::class.java) }
+        return querySnapshot.documents.map { documentToFeeding(it) }
     }
 
     fun addFeeding(feeding: Feeding): Feeding {
@@ -52,6 +63,6 @@ class FeedingService {
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .limit(1)
         val querySnapshot = query.get().get()
-        return querySnapshot.documents.firstOrNull()?.toObject(Feeding::class.java)
+        return querySnapshot.documents.firstOrNull()?.let { documentToFeeding(it) }
     }
 }
