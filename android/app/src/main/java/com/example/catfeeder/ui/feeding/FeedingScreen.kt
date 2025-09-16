@@ -7,8 +7,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.catfeeder.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,13 +33,13 @@ fun FeedingScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Display current status
-                    Text(text = "Current Status", style = MaterialTheme.typography.headlineMedium)
+                    Text(text = stringResource(R.string.current_status), style = MaterialTheme.typography.headlineMedium)
                     uiState.currentStatus?.let {
                         val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                             .format(Date(it.timestamp))
-                        Text("Last fed by: ${it.userId} (${it.type})")
-                        Text("Time: $formattedTime")
-                    } ?: Text("No feeding records yet.")
+                        Text(stringResource(R.string.last_fed_by, it.userId, it.type))
+                        Text(stringResource(R.string.feeding_time, formattedTime))
+                    } ?: Text(stringResource(R.string.no_feeding_records))
 
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -46,19 +48,19 @@ fun FeedingScreen(
                         onClick = { viewModel.addFeeding("meal") },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Feed Meal")
+                        Text(stringResource(R.string.feed_meal))
                     }
                     Button(
                         onClick = { viewModel.addFeeding("snack") },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Feed Snack")
+                        Text(stringResource(R.string.feed_snack))
                     }
 
                     // Display error if any
                     uiState.error?.let {
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(text = "Error: $it", color = MaterialTheme.colorScheme.error)
+                        Text(text = stringResource(R.string.error_message, it), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }

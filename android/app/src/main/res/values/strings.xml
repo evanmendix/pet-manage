@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Cat Feeder</string>
+    <string name="current_status">Current Status</string>
+    <string name="last_fed_by">Last fed by: %1$s (%2$s)</string>
+    <string name="feeding_time">Time: %1$s</string>
+    <string name="no_feeding_records">No feeding records yet.</string>
+    <string name="feed_meal">Feed Meal</string>
+    <string name="feed_snack">Feed Snack</string>
+    <string name="error_message">Error: %1$s</string>
+</resources>

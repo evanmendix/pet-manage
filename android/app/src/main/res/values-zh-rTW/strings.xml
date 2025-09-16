@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">貓咪餵食器</string>
+    <string name="current_status">目前狀態</string>
+    <string name="last_fed_by">上次餵食者：%1$s (%2$s)</string>
+    <string name="feeding_time">時間：%1$s</string>
+    <string name="no_feeding_records">尚無餵食記錄</string>
+    <string name="feed_meal">餵主餐</string>
+    <string name="feed_snack">餵零食</string>
+    <string name="error_message">錯誤：%1$s</string>
+</resources>
