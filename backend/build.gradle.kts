@@ -10,9 +10,7 @@ application {
     mainClass.set("com.example.ApplicationKt")
 }
 
-repositories {
-    mavenCentral()
-}
+
 
 dependencies {
     // Ktor Core
