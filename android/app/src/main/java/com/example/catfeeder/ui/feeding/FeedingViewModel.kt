@@ -14,7 +14,8 @@ data class FeedingUiState(
     val currentStatus: Feeding? = null,
     val recentFeedings: List<Feeding> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showDuplicateFeedingDialog: Boolean = false
 )
 
 @HiltViewModel
@@ -40,12 +41,37 @@ class FeedingViewModel @Inject constructor(
         }
     }
 
-    fun addFeeding(type: String) {
+    fun addFeeding(type: String, force: Boolean = false) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, showDuplicateFeedingDialog = false)
+            val newFeeding = Feeding(userId = "testUser", timestamp = System.currentTimeMillis(), type = type)
+            repository.addFeeding(newFeeding, force).onSuccess {
+                // After adding, refresh the status to show the new feeding
+                refreshStatus()
+            }.onFailure {
+                if (it.message?.contains("Duplicate feeding detected") == true) {
+                    _uiState.value = _uiState.value.copy(isLoading = false, showDuplicateFeedingDialog = true)
+                } else {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = it.message)
+                }
+            }
+        }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun dismissDuplicateFeedingDialog() {
+        _uiState.value = _uiState.value.copy(showDuplicateFeedingDialog = false)
+    }
+
+    fun overwriteLastMeal(type: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             val newFeeding = Feeding(userId = "testUser", timestamp = System.currentTimeMillis(), type = type)
-            repository.addFeeding(newFeeding).onSuccess {
-                // After adding, refresh the status to show the new feeding
+            repository.overwriteLastMeal(newFeeding).onSuccess {
+                // After overwriting, refresh the status to show the new feeding
                 refreshStatus()
             }.onFailure {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = it.message)

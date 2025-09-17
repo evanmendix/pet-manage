@@ -7,4 +7,14 @@
     <string name="feed_meal">Feed Meal</string>
     <string name="feed_snack">Feed Snack</string>
     <string name="error_message">Error: %1$s</string>
+    <string name="duplicate_feeding_title">Duplicate Feeding</string>
+    <string name="duplicate_feeding_message">A meal has been fed recently. Are you sure you want to add another one?</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="fed_by">Fed by %1$s (%2$s)</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="home">Home</string>
+    <string name="history">History</string>
+    <string name="meal">Meal</string>
+    <string name="snack">Snack</string>
 </resources>
