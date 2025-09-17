@@ -27,14 +27,27 @@ class FeedingService {
         )
     }
 
-    fun getRecentFeedings(): List<Feeding> {
-        val query = feedingsCollection.orderBy("timestamp", Query.Direction.DESCENDING).limit(30)
+    fun getFeedings(startTime: Long? = null, endTime: Long? = null): List<Feeding> {
+        var query: Query = feedingsCollection.orderBy("timestamp", Query.Direction.DESCENDING)
+
+        if (startTime != null) {
+            query = query.whereGreaterThanOrEqualTo("timestamp", startTime)
+        }
+        if (endTime != null) {
+            query = query.whereLessThanOrEqualTo("timestamp", endTime)
+        }
+
+        // Apply a default limit if no time range is specified
+        if (startTime == null && endTime == null) {
+            query = query.limit(30)
+        }
+
         val querySnapshot = query.get().get()
         return querySnapshot.documents.map { documentToFeeding(it) }
     }
 
-    fun addFeeding(feeding: Feeding): Feeding {
-        if (feeding.type == "meal") {
+    fun addFeeding(feeding: Feeding, force: Boolean = false): Feeding {
+        if (feeding.type == "meal" && !force) {
             // Check for recent meals within the last 4 hours.
             val fourHoursInMillis = 4 * 60 * 60 * 1000
             val windowStart = feeding.timestamp - fourHoursInMillis
@@ -64,5 +77,24 @@ class FeedingService {
             .limit(1)
         val querySnapshot = query.get().get()
         return querySnapshot.documents.firstOrNull()?.let { documentToFeeding(it) }
+    }
+
+    fun overwriteLastMeal(feeding: Feeding): Feeding {
+        // Find the most recent meal to overwrite
+        val query = feedingsCollection
+            .whereEqualTo("type", "meal")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(1)
+        val querySnapshot = query.get().get()
+
+        if (querySnapshot.isEmpty) {
+            // No meal found to overwrite, so just add a new one
+            return addFeeding(feeding)
+        } else {
+            val lastMealDoc = querySnapshot.documents.first()
+            val updatedFeeding = feeding.copy(id = lastMealDoc.id)
+            lastMealDoc.reference.set(updatedFeeding).get()
+            return updatedFeeding
+        }
     }
 }

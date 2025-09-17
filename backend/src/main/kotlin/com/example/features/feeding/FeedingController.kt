@@ -25,17 +25,26 @@ fun Route.privateFeedingRoutes() {
 
     route("/feedings") {
         get {
-            call.respond(feedingService.getRecentFeedings())
+            val startTime = call.request.queryParameters["startTime"]?.toLongOrNull()
+            val endTime = call.request.queryParameters["endTime"]?.toLongOrNull()
+            call.respond(feedingService.getFeedings(startTime, endTime))
         }
 
         post {
             try {
+                val force = call.request.queryParameters["force"]?.toBoolean() ?: false
                 val feeding = call.receive<Feeding>()
-                val newFeeding = feedingService.addFeeding(feeding)
+                val newFeeding = feedingService.addFeeding(feeding, force)
                 call.respond(HttpStatusCode.Created, newFeeding)
             } catch (e: DuplicateFeedingException) {
                 call.respond(HttpStatusCode.Conflict, mapOf("error" to (e.message ?: "Duplicate feeding detected")))
             }
+        }
+
+        post("/overwrite") {
+            val feeding = call.receive<Feeding>()
+            val updatedFeeding = feedingService.overwriteLastMeal(feeding)
+            call.respond(HttpStatusCode.OK, updatedFeeding)
         }
     }
 }
