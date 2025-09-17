@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     var selectedIndex by remember { mutableStateOf(0) }
     val items = listOf(
-        stringResource(R.string.home) to Icons.Default.Home,
-        stringResource(R.string.history) to Icons.Default.History
+        stringResource(R.string.home) to Icons.Filled.Home,
+        stringResource(R.string.history) to Icons.Filled.History
     )
 
     Scaffold(
