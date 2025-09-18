@@ -24,6 +24,7 @@ fun Application.configureRouting() {
             authenticate {
                 privateFeedingRoutes()
                 userRoutes()
+                petRoutes()
             }
         }
     }
