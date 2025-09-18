@@ -113,6 +113,7 @@ fun FeedingScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetSelector(
     pets: List<Pet>,
