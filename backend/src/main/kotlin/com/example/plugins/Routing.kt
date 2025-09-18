@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.features.feeding.privateFeedingRoutes
 import com.example.features.feeding.publicFeedingRoutes
+import com.example.features.pets.petRoutes
 import com.example.features.user.userRoutes
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -17,6 +18,7 @@ fun Application.configureRouting() {
         route("/api/v1") {
             // Public routes that do not require authentication
             publicFeedingRoutes()
+            petRoutes()
 
             // Private routes that require authentication
             authenticate {

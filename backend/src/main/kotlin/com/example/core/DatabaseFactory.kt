@@ -1,0 +1,28 @@
+package com.example.core
+
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+
+object DatabaseFactory {
+
+    fun init() {
+        val driverClassName = "org.postgresql.Driver"
+        val jdbcURL = System.getenv("DB_JDBC_URL") ?: "jdbc:postgresql://localhost:5432/pet_feeder_db"
+        val user = System.getenv("DB_USER") ?: "root"
+        val password = System.getenv("DB_PASSWORD") ?: "secret"
+
+        val database = Database.connect(jdbcURL, driverClassName, user, password)
+    }
+
+    /**
+     * A helper function to execute a database query in a suspended transaction.
+     * This ensures that database operations are run on a dedicated thread pool (Dispatchers.IO)
+     * to avoid blocking the main application threads.
+     *
+     * @param block The database operation to be executed.
+     * @return The result of the database operation.
+     */
+    suspend fun <T> dbQuery(block: suspend () -> T): T =
+        newSuspendedTransaction(Dispatchers.IO) { block() }
+}
