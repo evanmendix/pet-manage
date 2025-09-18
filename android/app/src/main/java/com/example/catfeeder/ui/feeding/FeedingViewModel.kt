@@ -56,8 +56,8 @@ class FeedingViewModel @Inject constructor(
                 // For now, we continue to fetch the global status.
                 feedingRepository.getCurrentStatus().onSuccess { status ->
                     _uiState.update { it.copy(isLoading = false, currentStatus = status) }
-                }.onFailure {
-                    _uiState.update { it.copy(isLoading = false, error = it.message) }
+                }.onFailure { throwable ->
+                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
                 }
 
             } catch (e: Exception) {
@@ -79,11 +79,11 @@ class FeedingViewModel @Inject constructor(
             val newFeeding = Feeding(userId = _uiState.value.currentUserId, timestamp = System.currentTimeMillis(), type = type)
             feedingRepository.addFeeding(newFeeding, force).onSuccess {
                 refreshAllData()
-            }.onFailure {
-                if (it.message?.contains("Duplicate feeding detected") == true) {
+            }.onFailure { throwable ->
+                if (throwable.message?.contains("Duplicate feeding detected") == true) {
                     _uiState.update { it.copy(isLoading = false, showDuplicateFeedingDialog = true) }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = it.message) }
+                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
                 }
             }
         }
@@ -101,8 +101,8 @@ class FeedingViewModel @Inject constructor(
             val newFeeding = Feeding(userId = _uiState.value.currentUserId, timestamp = System.currentTimeMillis(), type = type)
             feedingRepository.overwriteLastMeal(newFeeding).onSuccess {
                 refreshAllData()
-            }.onFailure {
-                _uiState.update { it.copy(isLoading = false, error = it.message) }
+            }.onFailure { throwable ->
+                _uiState.update { it.copy(isLoading = false, error = throwable.message) }
             }
         }
     }
