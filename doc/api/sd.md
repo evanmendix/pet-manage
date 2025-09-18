@@ -40,6 +40,10 @@ API 端點維持不變，前綴為 `/api/v1`。
 
 *   `POST /users`: 建立新使用者。
 *   `PUT /users/{userId}`: 更新使用者資訊。
+*   `GET /pets`: 取得家庭中的寵物列表。
+*   `POST /pets`: 在家庭中新增一隻寵物。
+*   `POST /pets/{petId}/managers`: 將自己新增為特定寵物的管理者。
+*   `DELETE /pets/{petId}/managers`: 將自己從特定寵物的管理者名單中移除。
 *   `POST /feedings`: 新增餵食紀錄。
 *   `GET /feedings?limit=30`: 取得最近的餵食紀錄。
 *   `GET /status/current`: 取得當前餵食狀態。
@@ -65,7 +69,10 @@ API 端點維持不變，前綴為 `/api/v1`。
                 *   `fcmToken`: String
         *   **Collection: `pets`**
             *   **Document: `{petId}`**
-                *   ... (寵物資料)
+                *   `id`: String
+                *   `name`: String
+                *   `photoUrl`: String
+                *   `managingUserIds`: List<String> (管理此寵物的使用者 UID 列表)
                 *   **Collection: `feedings`**
                     *   **Document: `{feedingId}`**
                         *   ... (餵食紀錄)

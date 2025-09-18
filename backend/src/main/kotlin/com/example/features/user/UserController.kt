@@ -1,6 +1,11 @@
 package com.example.features.user
 
+import com.example.features.user.CreateUserRequest
+import com.example.features.user.UpdateUserRequest
+import com.example.security.FirebaseUser
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -10,17 +15,57 @@ fun Route.userRoutes() {
 
     route("/users") {
         post {
-            val user = call.receive<User>()
-            call.respond(userService.createUser(user))
+            val principal = call.principal<FirebaseUser>()
+            if (principal == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Missing or invalid credentials")
+                return@post
+            }
+
+            val uid = principal.uid
+            val request = call.receive<CreateUserRequest>()
+
+            try {
+                val newUser = userService.createUser(uid, request)
+                call.respond(HttpStatusCode.Created, newUser)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, "An error occurred: ${e.message}")
+            }
         }
-        put("/{userId}") {
-            val userId = call.parameters["userId"]!!
-            val user = call.receive<User>()
-            val updatedUser = userService.updateUser(userId, user)
-            if (updatedUser != null) {
-                call.respond(updatedUser)
+        get("/{userId}") {
+            val userId = call.parameters["userId"]
+            if (userId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing userId parameter")
+                return@get
+            }
+
+            val user = userService.getUser(userId)
+            if (user != null) {
+                call.respond(user)
             } else {
-                call.respondText("User not found", status = io.ktor.http.HttpStatusCode.NotFound)
+                call.respond(HttpStatusCode.NotFound, "User not found")
+            }
+        }
+
+        put("/{userId}") {
+            val principal = call.principal<FirebaseUser>()
+            val userId = call.parameters["userId"]
+            if (userId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing userId parameter")
+                return@put
+            }
+            // A user can only update their own data.
+            if (principal?.uid != userId) {
+                call.respond(HttpStatusCode.Forbidden, "You can only update your own profile.")
+                return@put
+            }
+
+            val request = call.receive<UpdateUserRequest>()
+            val updatedUser = userService.updateUser(userId, request)
+
+            if (updatedUser != null) {
+                call.respond(HttpStatusCode.OK, updatedUser)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "User not found")
             }
         }
     }
