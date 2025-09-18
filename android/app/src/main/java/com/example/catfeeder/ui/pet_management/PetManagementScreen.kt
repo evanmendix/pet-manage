@@ -21,15 +21,22 @@ import com.example.catfeeder.data.model.Pet
 import androidx.compose.ui.res.stringResource
 import com.example.catfeeder.R
 
+import androidx.hilt.navigation.compose.hiltViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetManagementScreen(
-    // Will be replaced with state from ViewModel
-    pets: List<Pet>,
-    currentUserId: String,
-    onAddPetClick: () -> Unit,
-    onManagementChange: (pet: Pet, isManaged: Boolean) -> Unit
+    viewModel: PetManagementViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    if (uiState.showAddPetDialog) {
+        AddPetDialog(
+            onDismiss = { viewModel.onAddPetDialogDismiss() },
+            onConfirm = { petName -> viewModel.addPet(petName) }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,26 +48,32 @@ fun PetManagementScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddPetClick) {
-                Icon(Icons.Default.Add, contentDescription = "Add Pet")
+            FloatingActionButton(onClick = { viewModel.onAddPetClicked() }) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_pet))
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(pets) { pet ->
-                PetManagementItem(
-                    pet = pet,
-                    isManaged = pet.managingUserIds.contains(currentUserId),
-                    onManagementChange = { isManaged ->
-                        onManagementChange(pet, isManaged)
-                    }
-                )
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(uiState.pets) { pet ->
+                    PetManagementItem(
+                        pet = pet,
+                        isManaged = pet.managingUserIds.contains(uiState.currentUserId),
+                        onManagementChange = { isManaged ->
+                            viewModel.onManagementChange(pet, isManaged)
+                        }
+                    )
+                }
             }
         }
     }
@@ -92,15 +105,45 @@ fun PetManagementItem(
 @Preview(showBackground = true)
 @Composable
 fun PetManagementScreenPreview() {
-    val samplePets = listOf(
-        Pet(id = "1", name = "Mimi", managingUserIds = listOf("user1")),
-        Pet(id = "2", name = "Kiki", managingUserIds = emptyList()),
-        Pet(id = "3", name = "Lulu", managingUserIds = listOf("user1", "user2"))
-    )
-    PetManagementScreen(
-        pets = samplePets,
-        currentUserId = "user1",
-        onAddPetClick = {},
-        onManagementChange = { _, _ -> }
+    // This preview is now simpler as the ViewModel is the source of truth.
+    // For a more complete preview, a fake ViewModel could be provided.
+    PetManagementScreen()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddPetDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var petName by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.add_pet)) },
+        text = {
+            TextField(
+                value = petName,
+                onValueChange = { petName = it },
+                label = { Text(stringResource(R.string.pet_name)) },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (petName.isNotBlank()) {
+                        onConfirm(petName)
+                    }
+                }
+            ) {
+                Text(stringResource(R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
     )
 }

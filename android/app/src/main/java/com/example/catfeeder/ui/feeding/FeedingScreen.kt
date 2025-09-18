@@ -123,8 +123,7 @@ fun PetSelector(
 ) {
     when {
         pets.size > 1 -> {
-            // TODO: Replace with a more visually appealing selector like a DropdownMenu or Chips
-            Text("Select a pet:", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.select_a_pet), style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 pets.forEach { pet ->
                     FilterChip(
@@ -137,19 +136,19 @@ fun PetSelector(
         }
         pets.size == 1 -> {
             val pet = pets.first()
-            Text("Feeding: ${pet.name}", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.feeding_for_pet, pet.name), style = MaterialTheme.typography.titleMedium)
         }
         else -> {
             Card(shape = RoundedCornerShape(8.dp)) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "No pets are being managed.",
+                        text = stringResource(R.string.no_pets_managed),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(onClick = onNavigateToPetManagement) {
-                        Text("Go to Pet Management")
+                        Text(stringResource(R.string.go_to_pet_management))
                     }
                 }
             }

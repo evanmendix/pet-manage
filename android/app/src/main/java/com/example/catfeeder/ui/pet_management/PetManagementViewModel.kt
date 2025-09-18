@@ -12,10 +12,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.example.catfeeder.data.network.dto.CreatePetRequest
+
 data class PetManagementUiState(
     val isLoading: Boolean = true,
     val pets: List<Pet> = emptyList(),
     val error: String? = null,
+    val showAddPetDialog: Boolean = false,
     // A placeholder for the current user's ID. This would typically be fetched from an Auth repository.
     val currentUserId: String = "user1"
 )
@@ -44,12 +47,24 @@ class PetManagementViewModel @Inject constructor(
         }
     }
 
+    fun onAddPetClicked() {
+        _uiState.update { it.copy(showAddPetDialog = true) }
+    }
+
+    fun onAddPetDialogDismiss() {
+        _uiState.update { it.copy(showAddPetDialog = false) }
+    }
+
     fun addPet(name: String) {
         viewModelScope.launch {
-            // Placeholder for creating a pet. Will be fully implemented later.
-            // val request = CreatePetRequest(name = name)
-            // petRepository.createPet(request)
-            // fetchPets() // Refresh the list
+            _uiState.update { it.copy(showAddPetDialog = false, isLoading = true) }
+            try {
+                val request = CreatePetRequest(name = name)
+                petRepository.createPet(request)
+                fetchPets() // Refresh the list
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
     }
 
