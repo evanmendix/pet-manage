@@ -17,7 +17,6 @@ import com.example.catfeeder.ui.feeding.FeedingScreen
 import com.example.catfeeder.ui.history.HistoryScreen
 import com.example.catfeeder.ui.navigation.Screen
 import com.example.catfeeder.ui.pet_management.PetManagementScreen
-import com.example.catfeeder.ui.pet_management.PetManagementViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -75,14 +74,7 @@ fun AppNavigation() {
                 HistoryScreen()
             }
             composable(Screen.PetManagement.route) {
-                val viewModel: PetManagementViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
-                PetManagementScreen(
-                    pets = uiState.pets,
-                    currentUserId = uiState.currentUserId,
-                    onAddPetClick = { /* TODO */ },
-                    onManagementChange = viewModel::onManagementChange
-                )
+                PetManagementScreen()
             }
         }
     }
