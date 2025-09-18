@@ -18,6 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.catfeeder.data.model.Pet
 
+import androidx.compose.ui.res.stringResource
+import com.example.catfeeder.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetManagementScreen(
@@ -30,7 +33,7 @@ fun PetManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pet Management") },
+                title = { Text(stringResource(id = R.string.pet_management)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary,
