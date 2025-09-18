@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class Pet(
     val id: String,
     val name: String,
-    val photoUrl: String? = null
+    val photoUrl: String? = null,
+    val managingUserIds: List<String> = emptyList()
 )

@@ -30,7 +30,8 @@ class UserService {
         val pet = Pet(
             id = newPetRef.id,
             name = "Mimi", // Default pet name
-            photoUrl = "https://example.com/default-pet-avatar.png" // Placeholder photo
+            photoUrl = "https://example.com/default-pet-avatar.png", // Placeholder photo
+            managingUserIds = listOf(uid) // The creator automatically manages the default pet.
         )
 
         // Run the creation of the family, user, and pet within a single transaction
