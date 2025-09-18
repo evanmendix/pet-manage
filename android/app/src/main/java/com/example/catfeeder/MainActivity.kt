@@ -5,14 +5,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.*
 import com.example.catfeeder.ui.feeding.FeedingScreen
 import com.example.catfeeder.ui.history.HistoryScreen
+import com.example.catfeeder.ui.navigation.Screen
+import com.example.catfeeder.ui.pet_management.PetManagementScreen
+import com.example.catfeeder.ui.pet_management.PetManagementViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,37 +25,65 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen()
+            AppNavigation()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    var selectedIndex by remember { mutableStateOf(0) }
-    val items = listOf(
-        stringResource(R.string.home) to Icons.Filled.Home,
-        stringResource(R.string.history) to Icons.Filled.History
-    )
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val bottomBarItems = listOf(Screen.Feeding, Screen.History)
 
     Scaffold(
         bottomBar = {
             NavigationBar {
-                items.forEachIndexed { index, item ->
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+
+                bottomBarItems.forEach { screen ->
                     NavigationBarItem(
-                        icon = { Icon(item.second, contentDescription = item.first) },
-                        label = { Text(item.first) },
-                        selected = selectedIndex == index,
-                        onClick = { selectedIndex = index }
+                        icon = { screen.icon?.let { Icon(it, contentDescription = screen.title) } },
+                        label = { screen.title?.let { Text(it) } },
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             }
         }
     ) { innerPadding ->
-        when (selectedIndex) {
-            0 -> FeedingScreen(modifier = Modifier.padding(innerPadding))
-            1 -> HistoryScreen(modifier = Modifier.padding(innerPadding))
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Feeding.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Feeding.route) {
+                FeedingScreen(
+                    onNavigateToPetManagement = { navController.navigate(Screen.PetManagement.route) }
+                )
+            }
+            composable(Screen.History.route) {
+                HistoryScreen()
+            }
+            composable(Screen.PetManagement.route) {
+                val viewModel: PetManagementViewModel = hiltViewModel()
+                val uiState by viewModel.uiState.collectAsState()
+                PetManagementScreen(
+                    pets = uiState.pets,
+                    currentUserId = uiState.currentUserId,
+                    onAddPetClick = { /* TODO */ },
+                    onManagementChange = viewModel::onManagementChange
+                )
+            }
         }
     }
 }
