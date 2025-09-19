@@ -2,6 +2,8 @@ package com.example.features.pet
 
 import com.example.core.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 class PetService {
