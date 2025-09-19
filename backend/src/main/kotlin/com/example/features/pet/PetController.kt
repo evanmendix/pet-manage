@@ -12,49 +12,26 @@ fun Route.petRoutes() {
     val petService = PetService()
 
     route("/pets") {
-        // Get all pets in the user's family
+        // Get all pets managed by the user
         get {
-            val principal = call.principal<FirebaseUser>()
-            if (principal == null) {
-                call.respond(HttpStatusCode.Unauthorized)
-                return@get
-            }
-
-            val pets = petService.getPetsForUserFamily(principal.uid)
-            if (pets != null) {
-                call.respond(pets)
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Could not find family for user.")
-            }
+            val principal = call.principal<FirebaseUser>()!!
+            val pets = petService.getPetsForUser(principal.uid)
+            call.respond(pets)
         }
 
-        // Create a new pet in the user's family
+        // Create a new pet and assign the user as a manager
         post {
-            val principal = call.principal<FirebaseUser>()
-            if (principal == null) {
-                call.respond(HttpStatusCode.Unauthorized)
-                return@post
-            }
-
+            val principal = call.principal<FirebaseUser>()!!
             val request = call.receive<CreatePetRequest>()
-            val newPet = petService.createPet(principal.uid, request.name, request.photoUrl)
-
-            if (newPet != null) {
-                call.respond(HttpStatusCode.Created, newPet)
-            } else {
-                call.respond(HttpStatusCode.InternalServerError, "Failed to create pet.")
-            }
+            val newPet = petService.createPet(principal.uid, request)
+            call.respond(HttpStatusCode.Created, newPet)
         }
 
         route("/{petId}/managers") {
             // Add the authenticated user as a manager for the pet
             post {
-                val principal = call.principal<FirebaseUser>()
+                val principal = call.principal<FirebaseUser>()!!
                 val petId = call.parameters["petId"]
-                if (principal == null) {
-                    call.respond(HttpStatusCode.Unauthorized)
-                    return@post
-                }
                 if (petId == null) {
                     call.respond(HttpStatusCode.BadRequest, "Missing petId")
                     return@post
@@ -64,18 +41,14 @@ fun Route.petRoutes() {
                 if (success) {
                     call.respond(HttpStatusCode.OK)
                 } else {
-                    call.respond(HttpStatusCode.NotFound, "Pet not found.")
+                    call.respond(HttpStatusCode.NotFound, "Pet not found or manager already exists.")
                 }
             }
 
             // Remove the authenticated user as a manager
             delete {
-                val principal = call.principal<FirebaseUser>()
+                val principal = call.principal<FirebaseUser>()!!
                 val petId = call.parameters["petId"]
-                if (principal == null) {
-                    call.respond(HttpStatusCode.Unauthorized)
-                    return@delete
-                }
                 if (petId == null) {
                     call.respond(HttpStatusCode.BadRequest, "Missing petId")
                     return@delete
@@ -85,7 +58,7 @@ fun Route.petRoutes() {
                 if (success) {
                     call.respond(HttpStatusCode.OK)
                 } else {
-                    call.respond(HttpStatusCode.NotFound, "Pet not found.")
+                    call.respond(HttpStatusCode.NotFound, "Pet or manager not found.")
                 }
             }
         }

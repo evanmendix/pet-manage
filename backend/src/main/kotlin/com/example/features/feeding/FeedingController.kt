@@ -1,50 +1,66 @@
 package com.example.features.feeding
 
-import com.example.features.feeding.DuplicateFeedingException
-import io.ktor.http.HttpStatusCode
+import com.example.security.FirebaseUser
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.publicFeedingRoutes() {
-    val feedingService = FeedingService()
-
-    get("/status/current") {
-        val currentStatus = feedingService.getCurrentStatus()
-        if (currentStatus != null) {
-            call.respond(currentStatus)
-        } else {
-            call.respond(HttpStatusCode.NoContent)
-        }
-    }
-}
-
-fun Route.privateFeedingRoutes() {
+fun Route.feedingRoutes() {
     val feedingService = FeedingService()
 
     route("/feedings") {
-        get {
-            val startTime = call.request.queryParameters["startTime"]?.toLongOrNull()
-            val endTime = call.request.queryParameters["endTime"]?.toLongOrNull()
-            call.respond(feedingService.getFeedings(startTime, endTime))
-        }
+        authenticate {
+            get {
+                val principal = call.principal<FirebaseUser>()!!
+                val petId = call.request.queryParameters["petId"]
+                if (petId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Missing petId query parameter")
+                    return@get
+                }
 
-        post {
-            try {
-                val force = call.request.queryParameters["force"]?.toBoolean() ?: false
-                val feeding = call.receive<Feeding>()
-                val newFeeding = feedingService.addFeeding(feeding, force)
-                call.respond(HttpStatusCode.Created, newFeeding)
-            } catch (e: DuplicateFeedingException) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to (e.message ?: "Duplicate feeding detected")))
+                val startTime = call.request.queryParameters["startTime"]?.toLongOrNull()
+                val endTime = call.request.queryParameters["endTime"]?.toLongOrNull()
+
+                val feedings = feedingService.getFeedings(petId, startTime, endTime)
+                call.respond(feedings)
+            }
+
+            post {
+                val principal = call.principal<FirebaseUser>()!!
+                val request = call.receive<CreateFeedingRequest>()
+
+                try {
+                    val newFeeding = feedingService.addFeeding(principal.uid, request)
+                    call.respond(HttpStatusCode.Created, newFeeding)
+                } catch (e: DuplicateFeedingException) {
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to (e.message ?: "Duplicate feeding detected")))
+                }
+            }
+
+            post("/overwrite") {
+                val principal = call.principal<FirebaseUser>()!!
+                val request = call.receive<OverwriteMealRequest>()
+                val updatedFeeding = feedingService.overwriteLastMeal(principal.uid, request)
+                call.respond(HttpStatusCode.OK, updatedFeeding)
             }
         }
 
-        post("/overwrite") {
-            val feeding = call.receive<Feeding>()
-            val updatedFeeding = feedingService.overwriteLastMeal(feeding)
-            call.respond(HttpStatusCode.OK, updatedFeeding)
+        // Public route for current status
+        get("/status/current") {
+            val petId = call.request.queryParameters["petId"]
+            if (petId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing petId query parameter")
+                return@get
+            }
+            val currentStatus = feedingService.getCurrentStatus(petId)
+            if (currentStatus != null) {
+                call.respond(currentStatus)
+            } else {
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }

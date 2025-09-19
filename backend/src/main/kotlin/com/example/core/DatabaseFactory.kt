@@ -1,8 +1,14 @@
 package com.example.core
 
+import com.example.features.feeding.Feedings
+import com.example.features.pet.PetManagers
+import com.example.features.pet.Pets
+import com.example.features.user.Users
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
 
@@ -13,6 +19,9 @@ object DatabaseFactory {
         val password = System.getenv("DB_PASSWORD") ?: "secret"
 
         val database = Database.connect(jdbcURL, driverClassName, user, password)
+        transaction(database) {
+            SchemaUtils.create(Users, Pets, PetManagers, Feedings)
+        }
     }
 
     /**
