@@ -14,7 +14,7 @@ object DatabaseFactory {
 
     fun init() {
         val driverClassName = "org.postgresql.Driver"
-        val jdbcURL = System.getenv("DB_JDBC_URL") ?: "jdbc:postgresql://localhost:5432/pet_feeder_db"
+        val jdbcURL = System.getenv("DB_JDBC_URL") ?: "jdbc:postgresql://localhost:5071/pet_feeder_db"
         val user = System.getenv("DB_USER") ?: "root"
         val password = System.getenv("DB_PASSWORD") ?: "secret"
 
