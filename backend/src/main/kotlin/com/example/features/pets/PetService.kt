@@ -13,6 +13,6 @@ class PetService {
     private fun resultRowToPet(row: ResultRow) = Pet(
         id = row[Pets.id],
         name = row[Pets.name],
-        type = row[Pets.type]
+        photoUrl = row[Pets.photoUrl]
     )
 }
