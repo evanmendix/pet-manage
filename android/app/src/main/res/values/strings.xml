@@ -24,4 +24,7 @@
     <string name="go_to_pet_management">前往寵物管理</string>
     <string name="add_pet">新增寵物</string>
     <string name="pet_name">寵物名字</string>
+    <string name="no_feeding_history">沒有這個時段的餵食紀錄</string>
+    <string name="no_managed_pets_history_prompt">您沒有正在管理的寵物，無法查看歷史紀錄。請先去「寵物管理」頁面新增或管理一隻寵物。</string>
+    <string name="selected_pet">選擇的寵物</string>
 </resources>
