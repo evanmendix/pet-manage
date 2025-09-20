@@ -1,6 +1,7 @@
 package com.example.features.pet
 
 import com.example.features.user.Users
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 
 object Pets : Table("pets") {
@@ -12,8 +13,8 @@ object Pets : Table("pets") {
 }
 
 object PetManagers : Table("pet_managers") {
-    val petId = varchar("pet_id", 255).references(Pets.id)
-    val userId = varchar("user_id", 255).references(Users.id)
+    val petId = varchar("pet_id", 255).references(Pets.id, onDelete = ReferenceOption.CASCADE)
+    val userId = varchar("user_id", 255).references(Users.id, onDelete = ReferenceOption.CASCADE)
 
     override val primaryKey = PrimaryKey(petId, userId)
 }
