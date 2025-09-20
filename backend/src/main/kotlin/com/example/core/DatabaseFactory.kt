@@ -20,7 +20,7 @@ object DatabaseFactory {
 
         val database = Database.connect(jdbcURL, driverClassName, user, password)
         transaction(database) {
-            SchemaUtils.create(Users, Pets, PetManagers, Feedings)
+            SchemaUtils.createMissingTablesAndColumns(Users, Pets, PetManagers, Feedings)
         }
     }
 
