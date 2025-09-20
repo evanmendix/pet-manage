@@ -27,6 +27,12 @@ dependencies {
     // Firebase Admin SDK
     implementation("com.google.firebase:firebase-admin:9.5.0")
 
+    // Database - Exposed for SQL and PostgreSQL driver
+    implementation("org.jetbrains.exposed:exposed-core:0.52.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.52.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.52.0")
+    implementation("org.postgresql:postgresql:42.7.3")
+
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.6")
 

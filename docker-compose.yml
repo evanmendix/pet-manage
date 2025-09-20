@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: pet_feeder_backend
+    ports:
+      - "5070:8080" # Map host port 5070 to container port 8080
+    environment:
+      - DB_JDBC_URL=jdbc:postgresql://db:5432/pet_feeder_db
+      - DB_USER=root
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: pet_feeder_db
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=pet_feeder_db
+    ports:
+      - "5071:5432" # Map host port 5071 to container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

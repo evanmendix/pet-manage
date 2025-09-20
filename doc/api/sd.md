@@ -7,8 +7,10 @@
 *   **建置工具 (Build Tool)**: `Gradle` with Kotlin DSL (`build.gradle.kts`)
 *   **伺服器引擎 (Engine)**: `Netty`
 *   **非同步處理 (Asynchrony)**: `Kotlin Coroutines`
-*   **資料庫 (Database)**: `Google Firestore`
+*   **資料庫 (Database)**: `PostgreSQL`
+*   **資料庫互動 (Database Interaction)**: `Exposed`
 *   **認證 (Authentication)**: `Firebase Authentication`
+*   **推播通知 (Push Notifications)**: `Firebase Cloud Messaging` (未來規劃)
 
 ## 2. 專案結構 (Project Structure)
 
@@ -23,15 +25,16 @@ backend/
                 ├── Application.kt      // Ktor 伺服器進入點與模組設定
                 ├── plugins/            // Ktor 外掛設定 (Routing, Serialization)
                 ├── security/           // Firebase 認證相關
-                ├── features/           // 各功能模組 (e.g., feedings, users)
-                │   ├── feeding/
-                │   │   ├── FeedingController.kt
-                │   │   ├── FeedingService.kt
-                │   │   └── Feeding.kt  // Data Class
-                │   └── user/
-                │       └── ...
+                ├── features/           // 各功能模組 (e.g., feedings, users, pets)
+                │   ├── user/
+                │   │   ├── UserController.kt
+                │   │   ├── UserService.kt
+                │   │   ├── User.kt         // Data Class
+                │   │   └── Users.kt        // Exposed Table a a a
+                │   └── ...
                 └── core/               // 核心服務
-                    └── FirebaseAdmin.kt // Firebase Admin SDK 初始化
+                    ├── FirebaseAdmin.kt // Firebase Admin SDK 初始化
+                    └── DatabaseFactory.kt // Exposed 與 PostgreSQL 資料庫初始化
 ```
 
 ## 3. API 端點設計 (API Endpoint Design)
@@ -40,13 +43,15 @@ API 端點維持不變，前綴為 `/api/v1`。
 
 *   `POST /users`: 建立新使用者。
 *   `PUT /users/{userId}`: 更新使用者資訊。
-*   `GET /pets`: 取得家庭中的寵物列表。
-*   `POST /pets`: 在家庭中新增一隻寵物。
+*   `GET /pets`: 取得使用者所管理的所有寵物列表。
+*   `POST /pets`: 新增一隻寵物，並將自己設為管理者。
 *   `POST /pets/{petId}/managers`: 將自己新增為特定寵物的管理者。
 *   `DELETE /pets/{petId}/managers`: 將自己從特定寵物的管理者名單中移除。
 *   `POST /feedings`: 新增餵食紀錄。
-*   `GET /feedings?limit=30`: 取得最近的餵食紀錄。
-*   `GET /status/current`: 取得當前餵食狀態。
+*   `GET /feedings?petId=...`: 取得特定寵物的餵食紀錄。
+*   `GET /feedings/status/current?petId=...`: 取得特定寵物當前的餵食狀態。
+
+(未來功能)
 *   `POST /pets/{petId}/weights`: 新增體重紀錄。
 *   `GET /pets/{petId}/weights`: 取得歷史體重紀錄。
 *   `GET /albums/photos`: 取得相簿照片。
@@ -54,28 +59,30 @@ API 端點維持不變，前綴為 `/api/v1`。
 ## 4. 認證機制 (Authentication)
 
 *   所有需保護的 API 請求，其 `Authorization` Header 必須包含由 `Firebase Authentication` 簽發的 `Bearer <ID_TOKEN>`。
-*   Ktor 將會有一個認證 `plugin`，它會攔截請求，並使用 `Firebase Admin SDK` 來驗證 `ID Token` 的有效性。驗證成功後，會將使用者的 `UID` 等資訊附加到請求中，供後續的業務邏輯使用。
+*   Ktor 的認證 `plugin` 會攔截請求，並使用 `Firebase Admin SDK` 來驗證 `ID Token` 的有效性。驗證成功後，會將使用者的 `UID` 等資訊附加到請求中，供後續的業務邏輯使用。
 
-## 5. 資料庫設計 (Firestore Schema)
+## 5. 資料庫設計 (PostgreSQL Schema)
 
-資料庫結構維持不變，繼續使用 `Firestore`。
+資料庫已從 `Firestore` 遷移至 `PostgreSQL`，採用關聯式模型。
 
-*   **Collection: `families`**
-    *   **Document: `{familyId}`**
-        *   **Collection: `users`**
-            *   **Document: `{userId}`** (來自 `Firebase Auth` 的 `UID`)
-                *   `name`: String
-                *   `profilePictureUrl`: String
-                *   `fcmToken`: String
-        *   **Collection: `pets`**
-            *   **Document: `{petId}`**
-                *   `id`: String
-                *   `name`: String
-                *   `photoUrl`: String
-                *   `managingUserIds`: List<String> (管理此寵物的使用者 UID 列表)
-                *   **Collection: `feedings`**
-                    *   **Document: `{feedingId}`**
-                        *   ... (餵食紀錄)
-                *   **Collection: `weights`**
-                    *   **Document: `{weightId}`**
-                        *   ... (體重紀錄)
+*   **Table: `users`**
+    *   `id` (VARCHAR(255), PK): 使用者的 Firebase UID。
+    *   `name` (VARCHAR(255))
+    *   `profile_picture_url` (VARCHAR(255), nullable)
+
+*   **Table: `pets`**
+    *   `id` (VARCHAR(255), PK): 寵物的唯一 ID。
+    *   `name` (VARCHAR(255))
+    *   `photo_url` (VARCHAR(255), nullable)
+
+*   **Table: `pet_managers`** (多對多關聯表)
+    *   `pet_id` (VARCHAR(255), PK, FK to `pets.id` ON DELETE CASCADE)
+    *   `user_id` (VARCHAR(255), PK, FK to `users.id` ON DELETE CASCADE)
+
+*   **Table: `feedings`**
+    *   `id` (VARCHAR(255), PK): 餵食紀錄的唯一 ID。
+    *   `user_id` (VARCHAR(255), FK to `users.id` ON DELETE CASCADE): 執行餵食的使用者。
+    *   `pet_id` (VARCHAR(255), FK to `pets.id` ON DELETE CASCADE): 被餵食的寵物。
+    *   `timestamp` (BIGINT): 事件的 UTC 毫秒時間戳。
+    *   `type` (VARCHAR(50)): 類型，如 "meal" 或 "snack"。
+    *   `photo_url` (VARCHAR(255), nullable)

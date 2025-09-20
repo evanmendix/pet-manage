@@ -1,100 +1,114 @@
 package com.example.features.feeding
 
-import com.google.cloud.firestore.Firestore
-import com.google.cloud.firestore.Query
-import com.google.cloud.firestore.QueryDocumentSnapshot
-import com.google.firebase.cloud.FirestoreClient
-import java.util.UUID
+import com.example.core.DatabaseFactory.dbQuery
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import java.util.*
 
 class DuplicateFeedingException(message: String) : Exception(message)
 
 class FeedingService {
 
-    private val db: Firestore by lazy { FirestoreClient.getFirestore() }
+    suspend fun getFeedings(petId: String, startTime: Long?, endTime: Long?): List<Feeding> {
+        return dbQuery {
+            val query = Feedings.select { Feedings.petId eq petId }.orderBy(Feedings.timestamp, SortOrder.DESC)
+            startTime?.let { query.andWhere { Feedings.timestamp greaterEq it } }
+            endTime?.let { query.andWhere { Feedings.timestamp lessEq it } }
 
-    // TODO: The current implementation uses a top-level 'feedings' collection for simplicity.
-    // A future refactoring should move this to a sub-collection under a 'pets' collection
-    // to support multi-pet and multi-family scenarios, as documented in `doc/api/sd.md`.
-    private val feedingsCollection = db.collection("feedings")
+            // Apply a default limit if no time range is specified
+            if (startTime == null && endTime == null) {
+                query.limit(30)
+            }
 
-    private fun documentToFeeding(doc: QueryDocumentSnapshot): Feeding {
-        return Feeding(
-            id = doc.getString("id"),
-            userId = doc.getString("userId") ?: "",
-            timestamp = doc.getLong("timestamp") ?: 0L,
-            type = doc.getString("type") ?: "",
-            photoUrl = doc.getString("photoUrl")
-        )
+            query.map { toFeeding(it) }
+        }
     }
 
-    fun getFeedings(startTime: Long? = null, endTime: Long? = null): List<Feeding> {
-        var query: Query = feedingsCollection.orderBy("timestamp", Query.Direction.DESCENDING)
-
-        if (startTime != null) {
-            query = query.whereGreaterThanOrEqualTo("timestamp", startTime)
-        }
-        if (endTime != null) {
-            query = query.whereLessThanOrEqualTo("timestamp", endTime)
-        }
-
-        // Apply a default limit if no time range is specified
-        if (startTime == null && endTime == null) {
-            query = query.limit(30)
-        }
-
-        val querySnapshot = query.get().get()
-        return querySnapshot.documents.map { documentToFeeding(it) }
-    }
-
-    fun addFeeding(feeding: Feeding, force: Boolean = false): Feeding {
-        if (feeding.type == "meal" && !force) {
-            // Check for recent meals within the last 4 hours.
+    suspend fun addFeeding(userId: String, request: CreateFeedingRequest): Feeding {
+        if (request.type == "meal" && !request.force) {
             val fourHoursInMillis = 4 * 60 * 60 * 1000
-            val windowStart = feeding.timestamp - fourHoursInMillis
-
-            val query = feedingsCollection
-                .whereEqualTo("type", "meal")
-                .whereGreaterThanOrEqualTo("timestamp", windowStart)
-                .whereLessThan("timestamp", feeding.timestamp) // To avoid comparing the event with itself
-                .limit(1)
-
-            val querySnapshot = query.get().get()
-
-            if (!querySnapshot.isEmpty) {
+            val windowStart = request.timestamp - fourHoursInMillis
+            val recentMeal = dbQuery {
+                Feedings.select {
+                    (Feedings.petId eq request.petId) and
+                            (Feedings.type eq "meal") and
+                            (Feedings.timestamp greaterEq windowStart) and
+                            (Feedings.timestamp less request.timestamp)
+                }.limit(1).singleOrNull()
+            }
+            if (recentMeal != null) {
                 throw DuplicateFeedingException("A meal has already been recorded in the last 4 hours.")
             }
         }
 
-        val id = UUID.randomUUID().toString()
-        val newFeeding = feeding.copy(id = id)
-        feedingsCollection.document(id).set(newFeeding).get()
+        val newFeeding = Feeding(
+            id = UUID.randomUUID().toString(),
+            userId = userId,
+            petId = request.petId,
+            timestamp = request.timestamp,
+            type = request.type,
+            photoUrl = request.photoUrl
+        )
+
+        dbQuery {
+            Feedings.insert {
+                it[id] = newFeeding.id
+                it[Feedings.userId] = newFeeding.userId
+                it[petId] = newFeeding.petId
+                it[timestamp] = newFeeding.timestamp
+                it[type] = newFeeding.type
+                it[photoUrl] = newFeeding.photoUrl
+            }
+        }
         return newFeeding
     }
 
-    fun getCurrentStatus(): Feeding? {
-        val query = feedingsCollection
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(1)
-        val querySnapshot = query.get().get()
-        return querySnapshot.documents.firstOrNull()?.let { documentToFeeding(it) }
-    }
-
-    fun overwriteLastMeal(feeding: Feeding): Feeding {
-        // Find the most recent meal to overwrite
-        val query = feedingsCollection
-            .whereEqualTo("type", "meal")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(1)
-        val querySnapshot = query.get().get()
-
-        if (querySnapshot.isEmpty) {
-            // No meal found to overwrite, so just add a new one
-            return addFeeding(feeding)
-        } else {
-            val lastMealDoc = querySnapshot.documents.first()
-            val updatedFeeding = feeding.copy(id = lastMealDoc.id)
-            lastMealDoc.reference.set(updatedFeeding).get()
-            return updatedFeeding
+    suspend fun getCurrentStatus(petId: String): Feeding? {
+        return dbQuery {
+            Feedings.select { Feedings.petId eq petId }
+                .orderBy(Feedings.timestamp, SortOrder.DESC)
+                .limit(1)
+                .map { toFeeding(it) }
+                .singleOrNull()
         }
     }
+
+    suspend fun overwriteLastMeal(userId: String, request: OverwriteMealRequest): Feeding {
+        val lastMeal = dbQuery {
+            Feedings.select { (Feedings.petId eq request.petId) and (Feedings.type eq "meal") }
+                .orderBy(Feedings.timestamp, SortOrder.DESC)
+                .limit(1)
+                .singleOrNull()
+        }
+
+        val feedingToSave = Feeding(
+            id = lastMeal?.get(Feedings.id) ?: UUID.randomUUID().toString(),
+            userId = userId,
+            petId = request.petId,
+            timestamp = request.timestamp,
+            type = request.type,
+            photoUrl = request.photoUrl
+        )
+
+        dbQuery {
+            Feedings.upsert {
+                it[id] = feedingToSave.id
+                it[Feedings.userId] = feedingToSave.userId
+                it[petId] = feedingToSave.petId
+                it[timestamp] = feedingToSave.timestamp
+                it[type] = feedingToSave.type
+                it[photoUrl] = feedingToSave.photoUrl
+            }
+        }
+        return feedingToSave
+    }
+
+    private fun toFeeding(row: ResultRow) = Feeding(
+        id = row[Feedings.id],
+        userId = row[Feedings.userId],
+        petId = row[Feedings.petId],
+        timestamp = row[Feedings.timestamp],
+        type = row[Feedings.type],
+        photoUrl = row[Feedings.photoUrl]
+    )
 }

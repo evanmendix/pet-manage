@@ -37,4 +37,10 @@ object NetworkModule {
     fun provideFeedingApiService(retrofit: Retrofit): FeedingApiService {
         return retrofit.create(FeedingApiService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun providePetApiService(retrofit: Retrofit): com.example.catfeeder.data.network.PetApiService {
+        return retrofit.create(com.example.catfeeder.data.network.PetApiService::class.java)
+    }
 }
