@@ -36,4 +36,5 @@ local.properties
 .cxx/
 *.keystore
 *.jks
+google-services.json
 .idea/*

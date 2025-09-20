@@ -1,6 +1,8 @@
 package com.example.catfeeder.di
 
+import com.example.catfeeder.data.network.AuthInterceptor
 import com.example.catfeeder.data.network.FeedingApiService
+import com.example.catfeeder.data.network.PetApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -8,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
@@ -25,9 +28,18 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(json: Json): Retrofit {
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
     }
@@ -40,7 +52,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providePetApiService(retrofit: Retrofit): com.example.catfeeder.data.network.PetApiService {
-        return retrofit.create(com.example.catfeeder.data.network.PetApiService::class.java)
+    fun providePetApiService(retrofit: Retrofit): PetApiService {
+        return retrofit.create(PetApiService::class.java)
     }
 }

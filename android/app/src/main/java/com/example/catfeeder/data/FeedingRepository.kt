@@ -7,8 +7,8 @@ import javax.inject.Inject
 class FeedingRepository @Inject constructor(
     private val apiService: FeedingApiService
 ) {
-    suspend fun getFeedings(startTime: Long? = null, endTime: Long? = null): List<Feeding> {
-        return apiService.getFeedings(startTime, endTime)
+    suspend fun getFeedings(petId: String, startTime: Long? = null, endTime: Long? = null): List<Feeding> {
+        return apiService.getFeedings(petId, startTime, endTime)
     }
 
     suspend fun getCurrentStatus(): Result<Feeding?> {

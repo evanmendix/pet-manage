@@ -8,6 +8,7 @@ interface FeedingApiService {
 
     @GET("feedings")
     suspend fun getFeedings(
+        @Query("petId") petId: String,
         @Query("startTime") startTime: Long? = null,
         @Query("endTime") endTime: Long? = null
     ): List<Feeding>

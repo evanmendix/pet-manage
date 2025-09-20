@@ -12,6 +12,26 @@
     *   **JSON 解析**: `kotlinx.serialization` 或 `Moshi`。
     *   **圖片載入**: `Coil`，一個現代化的圖片載入函式庫，對 Coroutines 支援良好。
     *   **ViewModel**: `Jetpack ViewModel`，用於儲存和管理與 UI 相關的資料。
+*   **認證 (Authentication)**: `Firebase Authentication`，用於匿名登入以識別使用者身份。
+
+## 認證流程 (Authentication Flow)
+
+App 的認證流程旨在對使用者無感，採全自動匿名登入。
+
+1.  **啟動時登入**:
+    *   `MainActivity` 啟動時，會觸發 `MainViewModel` 中的 `signInAnonymously()` 方法。
+    *   此方法會透過 `AuthRepository` 檢查當前是否有已登入的 Firebase 使用者。
+    *   如果沒有，則會呼叫 `FirebaseAuth.signInAnonymously()` 進行匿名登入。
+
+2.  **自動附加 Token**:
+    *   所有對後端的 API 請求都會經過一個 `AuthInterceptor` (OkHttp Interceptor)。
+    *   此攔截器會從 `AuthRepository` 取得當前使用者的 ID Token。
+    *   然後，它會自動將 `Authorization: Bearer <ID_TOKEN>` 標頭加入到每一個請求中。
+
+3.  **元件**:
+    *   `AuthRepository`: 封裝所有與 `FirebaseAuth` 的互動，提供如 `signInAnonymously`、`getIdToken` 等方法。
+    *   `AuthInterceptor`: 負責將 Token 注入到網路請求中。
+    *   `FirebaseModule`: Hilt 模組，用於提供 `FirebaseAuth` 的實例。
 
 ## Android 系統整合
 
