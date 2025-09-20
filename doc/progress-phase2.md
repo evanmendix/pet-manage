@@ -29,3 +29,7 @@
 
 -   [x] **修正資料庫連線**
     *   [x] 更新 `DatabaseFactory.kt` 中的預設連線資訊，以符合 `docker-compose.yml` 的設定 (使用 `5071` port)。
+
+-   [ ] **(進行中) 錯誤修復與穩定性提升**
+    *   [x] 修正 `PetController` 中因請求內容可能為空造成的 `NullPointerException`。
+    *   [x] 修正 `PetService` 中因資料不一致可能導致的 `500 Internal Server Error`，強化了 `getPetsForUser` 的穩健性。

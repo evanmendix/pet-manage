@@ -41,10 +41,14 @@ class PetService {
                 .map { it[PetManagers.petId] }
                 .distinct()
 
-            petIds.map { petId ->
-                val petRow = Pets.select { Pets.id eq petId }.single()
-                val managerIds = PetManagers.select { PetManagers.petId eq petId }.map { it[PetManagers.userId] }
-                toPet(petRow, managerIds)
+            petIds.mapNotNull { petId ->
+                val petRow = Pets.select { Pets.id eq petId }.singleOrNull()
+                if (petRow != null) {
+                    val managerIds = PetManagers.select { PetManagers.petId eq petId }.map { it[PetManagers.userId] }
+                    toPet(petRow, managerIds)
+                } else {
+                    null
+                }
             }
         }
     }

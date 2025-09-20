@@ -23,6 +23,10 @@ fun Route.petRoutes() {
         post {
             val principal = call.principal<FirebaseUser>()!!
             val request = call.receive<CreatePetRequest>()
+            if (request == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request body")
+                return@post
+            }
             val newPet = petService.createPet(principal.uid, request)
             call.respond(HttpStatusCode.Created, newPet)
         }
