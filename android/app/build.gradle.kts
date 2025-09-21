@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.catfeeder"
+    namespace = "com.supercatdev.catfeeder"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.catfeeder"
+        applicationId = "com.supercatdev.catfeeder"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
