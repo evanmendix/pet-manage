@@ -12,11 +12,18 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
+    private var isSigningIn = false
+
     fun signInAnonymously() {
-        // Only sign in if there is no current user
-        if (authRepository.getCurrentUser() == null) {
+        // Only sign in if there is no current user and a sign-in is not already in progress.
+        if (authRepository.getCurrentUser() == null && !isSigningIn) {
+            isSigningIn = true
             viewModelScope.launch {
-                authRepository.signInAnonymously()
+                try {
+                    authRepository.signInAnonymously()
+                } finally {
+                    isSigningIn = false
+                }
             }
         }
     }
