@@ -18,17 +18,14 @@ class PetService {
         )
 
         dbQuery {
-            // Use a transaction to ensure both inserts succeed or fail together
-            transaction {
-                Pets.insert {
-                    it[id] = newPet.id
-                    it[name] = newPet.name
-                    it[photoUrl] = newPet.photoUrl
-                }
-                PetManagers.insert {
-                    it[PetManagers.petId] = newPet.id
-                    it[PetManagers.userId] = userId
-                }
+            Pets.insert {
+                it[id] = newPet.id
+                it[name] = newPet.name
+                it[photoUrl] = newPet.photoUrl
+            }
+            PetManagers.insert {
+                it[PetManagers.petId] = newPet.id
+                it[PetManagers.userId] = userId
             }
         }
         return newPet
