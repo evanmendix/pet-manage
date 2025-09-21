@@ -1,5 +1,6 @@
 package com.example.features.pet
 
+import com.example.features.user.UserPostgresService
 import com.example.security.FirebaseUser
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -10,11 +11,13 @@ import io.ktor.server.routing.*
 
 fun Route.petRoutes() {
     val petService = PetService()
+    val userPostgresService = UserPostgresService()
 
     route("/pets") {
         // Get all pets managed by the user
         get {
             val principal = call.principal<FirebaseUser>()!!
+            userPostgresService.getOrCreateUser(principal)
             val pets = petService.getPetsForUser(principal.uid)
             call.respond(pets)
         }
@@ -22,6 +25,7 @@ fun Route.petRoutes() {
         // Create a new pet and assign the user as a manager
         post {
             val principal = call.principal<FirebaseUser>()!!
+            userPostgresService.getOrCreateUser(principal)
             val request = call.receive<CreatePetRequest>()
             if (request == null) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid request body")
@@ -35,6 +39,7 @@ fun Route.petRoutes() {
             // Add the authenticated user as a manager for the pet
             post {
                 val principal = call.principal<FirebaseUser>()!!
+                userPostgresService.getOrCreateUser(principal)
                 val petId = call.parameters["petId"]
                 if (petId == null) {
                     call.respond(HttpStatusCode.BadRequest, "Missing petId")
@@ -52,6 +57,7 @@ fun Route.petRoutes() {
             // Remove the authenticated user as a manager
             delete {
                 val principal = call.principal<FirebaseUser>()!!
+                userPostgresService.getOrCreateUser(principal)
                 val petId = call.parameters["petId"]
                 if (petId == null) {
                     call.respond(HttpStatusCode.BadRequest, "Missing petId")

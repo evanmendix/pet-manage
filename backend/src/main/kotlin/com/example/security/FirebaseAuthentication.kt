@@ -4,7 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
 import io.ktor.server.auth.*
 
-data class FirebaseUser(val uid: String, val name: String?, val email: String?) : Principal
+data class FirebaseUser(val uid: String, val name: String?, val email: String?, val picture: String?) : Principal
 
 class FirebaseAuthenticationProvider(config: Config) : AuthenticationProvider(config) {
     private val principle: suspend (FirebaseToken) -> Principal? = config.principal
@@ -31,7 +31,7 @@ class FirebaseAuthenticationProvider(config: Config) : AuthenticationProvider(co
 
     class Config(name: String?) : AuthenticationProvider.Config(name) {
         var principal: suspend (FirebaseToken) -> Principal? = { token ->
-            FirebaseUser(token.uid, token.name, token.email)
+            FirebaseUser(token.uid, token.name, token.email, token.picture)
         }
     }
 }
