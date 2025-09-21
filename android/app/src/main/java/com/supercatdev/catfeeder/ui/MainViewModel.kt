@@ -40,6 +40,7 @@ class MainViewModel @Inject constructor(
                 authRepository.signInAnonymously()
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Firebase Authentication Failed", e)
                 val errorMessage = "Firebase Authentication failed. \n\nPlease ensure your app is correctly configured with a `google-services.json` file and that Anonymous Authentication is enabled in the Firebase console."
                 _authState.value = AuthState.Error(errorMessage)
             }
