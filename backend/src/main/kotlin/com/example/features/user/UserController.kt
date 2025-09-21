@@ -1,9 +1,7 @@
 package com.example.features.user
 
-import com.example.features.user.CreateUserRequest
-import com.example.features.user.UpdateUserRequest
 import com.example.security.FirebaseUser
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -11,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.userRoutes() {
-    val userService = UserService()
+    val userService = UserPostgresService()
 
     route("/users") {
         post {
@@ -25,7 +23,9 @@ fun Route.userRoutes() {
             val request = call.receive<CreateUserRequest>()
 
             try {
-                val newUser = userService.createUser(uid, request)
+                // Use getOrCreateUser to ensure idempotency and sync with Firebase
+                val newUser = userService.getOrCreateUser(principal)
+                // Optionally, could use the request to update name/picture here if needed
                 call.respond(HttpStatusCode.Created, newUser)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, "An error occurred: ${e.message}")

@@ -2,9 +2,8 @@ package com.example.features.user
 
 import com.example.core.DatabaseFactory
 import com.example.security.FirebaseUser
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class UserPostgresService {
 
@@ -25,6 +24,46 @@ class UserPostgresService {
                     it[profilePictureUrl] = newUser.profilePictureUrl
                 }
                 newUser
+            }
+        }
+    }
+
+    suspend fun createUser(uid: String, request: CreateUserRequest): User {
+        val newUser = User(
+            id = uid,
+            name = request.name,
+            profilePictureUrl = request.profilePictureUrl
+        )
+        return DatabaseFactory.dbQuery {
+            Users.insert {
+                it[id] = newUser.id
+                it[name] = newUser.name
+                it[profilePictureUrl] = newUser.profilePictureUrl
+            }
+            newUser
+        }
+    }
+
+    suspend fun getUser(userId: String): User? {
+        return DatabaseFactory.dbQuery {
+            Users.select { Users.id eq userId }
+                .map { toUser(it) }
+                .singleOrNull()
+        }
+    }
+
+    suspend fun updateUser(userId: String, request: UpdateUserRequest): User? {
+        return DatabaseFactory.dbQuery {
+            val updatedRows = Users.update({ Users.id eq userId }) {
+                request.name?.let { newName -> it[name] = newName }
+                request.profilePictureUrl?.let { newUrl -> it[profilePictureUrl] = newUrl }
+            }
+            if (updatedRows > 0) {
+                Users.select { Users.id eq userId }
+                    .map { toUser(it) }
+                    .singleOrNull()
+            } else {
+                null
             }
         }
     }

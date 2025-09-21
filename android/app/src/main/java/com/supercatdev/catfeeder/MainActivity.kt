@@ -4,16 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.supercatdev.catfeeder.ui.AuthState
 import com.supercatdev.catfeeder.ui.MainViewModel
 import com.supercatdev.catfeeder.ui.feeding.FeedingScreen
 import com.supercatdev.catfeeder.ui.history.HistoryScreen
@@ -29,10 +30,31 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.signInAnonymously()
-
         setContent {
-            AppNavigation()
+            val authState by viewModel.authState.collectAsState()
+
+            when (val state = authState) {
+                is AuthState.Idle, AuthState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is AuthState.Success -> {
+                    AppNavigation()
+                }
+                is AuthState.Error -> {
+                    AlertDialog(
+                        onDismissRequest = { },
+                        title = { Text("Authentication Error") },
+                        text = { Text(state.message) },
+                        confirmButton = {
+                            Button(onClick = { finish() }) {
+                                Text("Close App")
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }

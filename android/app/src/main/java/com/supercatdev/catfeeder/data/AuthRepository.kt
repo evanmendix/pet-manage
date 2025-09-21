@@ -13,15 +13,10 @@ class AuthRepository @Inject constructor(private val firebaseAuth: FirebaseAuth)
         return firebaseAuth.currentUser
     }
 
-    suspend fun signInAnonymously(): FirebaseUser? {
-        return try {
-            val authResult = firebaseAuth.signInAnonymously().await()
-            authResult.user
-        } catch (e: Exception) {
-            // In a real app, handle exceptions more gracefully (e.g., logging)
-            e.printStackTrace()
-            null
-        }
+suspend fun signInAnonymously(): FirebaseUser {
+    // Let the await() call throw an exception on failure, which will be caught by the ViewModel.
+    val authResult = firebaseAuth.signInAnonymously().await()
+    return authResult.user!!
     }
 
     suspend fun getIdToken(): String? {
