@@ -8,6 +8,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
 
 fun Route.petRoutes() {
     val petService = PetService()
@@ -33,6 +34,33 @@ fun Route.petRoutes() {
             }
             val newPet = petService.createPet(principal.uid, request)
             call.respond(HttpStatusCode.Created, newPet)
+        }
+
+        // Update a pet (name/photo). Any manager of the pet can update.
+        put("/{petId}") {
+            val principal = call.principal<FirebaseUser>()!!
+            userService.getOrCreateUser(principal)
+            val petId = call.parameters["petId"] ?: return@put call.respond(HttpStatusCode.BadRequest, "Missing petId")
+            val request = call.receive<UpdatePetRequest>()
+            val updated = petService.updatePetIfManager(petId, principal.uid, request)
+            if (updated != null) {
+                call.respond(HttpStatusCode.OK, updated)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Pet not found or user not a manager")
+            }
+        }
+
+        // Delete a pet (only if requester is a manager). This will cascade delete relationships.
+        delete("/{petId}") {
+            val principal = call.principal<FirebaseUser>()!!
+            userService.getOrCreateUser(principal)
+            val petId = call.parameters["petId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing petId")
+            val deleted = petService.deletePetIfManager(petId, principal.uid)
+            if (deleted) {
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Pet not found or user not a manager")
+            }
         }
 
         route("/{petId}/managers") {
@@ -74,3 +102,9 @@ fun Route.petRoutes() {
         }
     }
 }
+
+@Serializable
+data class UpdatePetRequest(
+    val name: String,
+    val photoUrl: String? = null
+)

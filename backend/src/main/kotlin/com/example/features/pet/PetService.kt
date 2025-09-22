@@ -69,6 +69,40 @@ class PetService {
         }
     }
 
+    suspend fun updatePetIfManager(petId: String, userId: String, request: UpdatePetRequest): Pet? {
+        return dbQuery {
+            // verify manager relationship
+            val isManager = PetManagers.select {
+                (PetManagers.petId eq petId) and (PetManagers.userId eq userId)
+            }.any()
+            if (!isManager) return@dbQuery null
+
+            val updated = Pets.update({ Pets.id eq petId }) {
+                it[name] = request.name
+                it[photoUrl] = request.photoUrl
+            }
+            if (updated == 0) return@dbQuery null
+
+            val petRow = Pets.select { Pets.id eq petId }.singleOrNull() ?: return@dbQuery null
+            val managerIds = PetManagers.select { PetManagers.petId eq petId }.map { it[PetManagers.userId] }
+            toPet(petRow, managerIds)
+        }
+    }
+
+    suspend fun deletePetIfManager(petId: String, userId: String): Boolean {
+        return dbQuery {
+            // verify manager relationship
+            val isManager = PetManagers.select {
+                (PetManagers.petId eq petId) and (PetManagers.userId eq userId)
+            }.any()
+            if (!isManager) return@dbQuery false
+
+            // delete pet (will cascade pet_managers via FK if configured at DB level)
+            val deleted = Pets.deleteWhere { Pets.id eq petId }
+            deleted > 0
+        }
+    }
+
     private fun toPet(row: ResultRow, managerIds: List<String>): Pet {
         return Pet(
             id = row[Pets.id],

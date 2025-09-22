@@ -1,5 +1,6 @@
 package com.supercatdev.catfeeder.ui.pet_management
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,9 +29,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetManagementScreen(
-    viewModel: PetManagementViewModel = hiltViewModel()
+    viewModel: PetManagementViewModel = hiltViewModel(),
+    onNavigateToEdit: (String) -> Unit = {},
+    refreshSignal: String? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Trigger refresh when coming back from edit/delete screen
+    LaunchedEffect(refreshSignal) {
+        if (refreshSignal != null) {
+            viewModel.fetchPets()
+        }
+    }
 
     if (uiState.showAddPetDialog) {
         AddPetDialog(
@@ -45,7 +56,12 @@ fun PetManagementScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary,
-                )
+                ),
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.toggleEditMode() }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Toggle edit mode")
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -67,13 +83,20 @@ fun PetManagementScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.pets) { pet ->
-                    PetManagementItem(
-                        pet = pet,
-                        isManaged = pet.managingUserIds.contains(uiState.currentUserId),
-                        onManagementChange = { isManaged ->
-                            viewModel.onManagementChange(pet, isManaged)
-                        }
-                    )
+                    if (uiState.isEditMode) {
+                        PetListClickableItem(
+                            pet = pet,
+                            onClick = { onNavigateToEdit(pet.id) }
+                        )
+                    } else {
+                        PetManagementItem(
+                            pet = pet,
+                            isManaged = pet.managingUserIds.contains(uiState.currentUserId),
+                            onManagementChange = { isManaged ->
+                                viewModel.onManagementChange(pet, isManaged)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -147,4 +170,27 @@ fun AddPetDialog(
             }
         }
     )
+}
+
+@Composable
+fun PetListClickableItem(
+    pet: Pet,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = pet.name, style = MaterialTheme.typography.bodyLarge)
+            Icon(Icons.Default.Edit, contentDescription = null)
+        }
+    }
 }

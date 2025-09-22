@@ -40,69 +40,69 @@ class FeedingViewModel @Inject constructor(
 
     private fun refreshAllData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { state -> state.copy(isLoading = true, error = null) }
             try {
-                // Fetch pets and filter for managed ones
-                val allPets = petRepository.getPets()
+                // Fetch pets (prefer all pets, fallback to managed) and filter for managed ones
+                val allPets = petRepository.getAllPetsOrManaged()
                 val managedPets = allPets.filter { it.managingUserIds.contains(_uiState.value.currentUserId) }
 
                 // Update selected pet logic
                 val selectedPetId = if (managedPets.size == 1) managedPets.first().id else null
 
-                _uiState.update { it.copy(managedPets = managedPets, selectedPetId = selectedPetId) }
+                _uiState.update { state -> state.copy(managedPets = managedPets, selectedPetId = selectedPetId) }
 
                 // Fetch feeding status
                 // TODO: The backend needs to be updated to fetch status for a specific pet or family.
                 // For now, we continue to fetch the global status.
                 feedingRepository.getCurrentStatus().onSuccess { status ->
-                    _uiState.update { it.copy(isLoading = false, currentStatus = status) }
+                    _uiState.update { state -> state.copy(isLoading = false, currentStatus = status) }
                 }.onFailure { throwable ->
-                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                    _uiState.update { state -> state.copy(isLoading = false, error = throwable.message) }
                 }
 
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update { state -> state.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
     fun selectPet(petId: String) {
-        _uiState.update { it.copy(selectedPetId = petId) }
+        _uiState.update { state -> state.copy(selectedPetId = petId) }
     }
 
     fun addFeeding(type: String, force: Boolean = false) {
         val petId = uiState.value.selectedPetId ?: return // Do nothing if no pet is selected
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, showDuplicateFeedingDialog = false) }
+            _uiState.update { state -> state.copy(isLoading = true, error = null, showDuplicateFeedingDialog = false) }
             // TODO: The 'Feeding' model on the backend needs a 'petId' field.
             val newFeeding = Feeding(userId = _uiState.value.currentUserId, timestamp = System.currentTimeMillis(), type = type)
             feedingRepository.addFeeding(newFeeding, force).onSuccess {
                 refreshAllData()
             }.onFailure { throwable ->
                 if (throwable.message?.contains("Duplicate feeding detected") == true) {
-                    _uiState.update { it.copy(isLoading = false, showDuplicateFeedingDialog = true) }
+                    _uiState.update { state -> state.copy(isLoading = false, showDuplicateFeedingDialog = true) }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                    _uiState.update { state -> state.copy(isLoading = false, error = throwable.message) }
                 }
             }
         }
     }
 
     fun dismissDuplicateFeedingDialog() {
-        _uiState.update { it.copy(showDuplicateFeedingDialog = false) }
+        _uiState.update { state -> state.copy(showDuplicateFeedingDialog = false) }
     }
 
     fun overwriteLastMeal(type: String) {
          val petId = uiState.value.selectedPetId ?: return // Do nothing if no pet is selected
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { state -> state.copy(isLoading = true, error = null) }
             val newFeeding = Feeding(userId = _uiState.value.currentUserId, timestamp = System.currentTimeMillis(), type = type)
             feedingRepository.overwriteLastMeal(newFeeding).onSuccess {
                 refreshAllData()
             }.onFailure { throwable ->
-                _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                _uiState.update { state -> state.copy(isLoading = false, error = throwable.message) }
             }
         }
     }

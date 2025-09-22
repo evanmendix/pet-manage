@@ -20,6 +20,7 @@ import com.supercatdev.catfeeder.ui.feeding.FeedingScreen
 import com.supercatdev.catfeeder.ui.history.HistoryScreen
 import com.supercatdev.catfeeder.ui.navigation.Screen
 import com.supercatdev.catfeeder.ui.pet_management.PetManagementScreen
+import com.supercatdev.catfeeder.ui.pet_edit.PetEditScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -103,8 +104,25 @@ fun AppNavigation() {
             composable(Screen.History.route) {
                 HistoryScreen()
             }
-            composable(Screen.PetManagement.route) {
-                PetManagementScreen()
+            composable(Screen.PetManagement.route) { backStackEntry ->
+                val refreshSignalState = backStackEntry.savedStateHandle.getStateFlow("refresh", "")
+                val refreshSignal = refreshSignalState.collectAsState().value.let { if (it.isBlank()) null else it }
+                PetManagementScreen(
+                    onNavigateToEdit = { petId -> navController.navigate("pet_edit/$petId") },
+                    refreshSignal = refreshSignal
+                )
+            }
+            composable(Screen.PetEdit.route) { backStackEntry ->
+                val petId = backStackEntry.arguments?.getString("petId") ?: ""
+                PetEditScreen(
+                    petId = petId,
+                    onDone = {
+                        // signal refresh to previous screen and navigate back
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh", System.currentTimeMillis().toString())
+                        navController.popBackStack()
+                    },
+                    onCancel = { navController.popBackStack() }
+                )
             }
         }
     }

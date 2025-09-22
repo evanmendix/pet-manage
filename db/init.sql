@@ -2,14 +2,14 @@
 -- It is designed to be consistent with the code-first schema defined using Exposed in the Kotlin backend.
 
 -- Users are managed by Firebase Authentication, so this table stores a reference to the Firebase UID.
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS pet_feeder_db.users (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     profile_picture_url VARCHAR(255)
 );
 
 -- Pets are created and managed by users.
-CREATE TABLE IF NOT EXISTS pets (
+CREATE TABLE IF NOT EXISTS pet_feeder_db.pets (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     photo_url VARCHAR(255)
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS pets (
 
 -- This table creates a many-to-many relationship between users and pets,
 -- allowing multiple users to manage a single pet.
-CREATE TABLE IF NOT EXISTS pet_managers (
+CREATE TABLE IF NOT EXISTS pet_feeder_db.pet_managers (
     pet_id VARCHAR(255) NOT NULL,
     user_id VARCHAR(255) NOT NULL,
     PRIMARY KEY (pet_id, user_id),
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS pet_managers (
 );
 
 -- This table stores feeding events for each pet.
-CREATE TABLE IF NOT EXISTS feedings (
+CREATE TABLE IF NOT EXISTS pet_feeder_db.feedings (
     id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     pet_id VARCHAR(255) NOT NULL,
