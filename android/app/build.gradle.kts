@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
 }
 
@@ -40,10 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        // Compose Compiler aligned with Kotlin 2.0.21
-        kotlinCompilerExtensionVersion = "1.7.3"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -67,17 +64,17 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.4")
 
     // Retrofit for networking
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Kotlinx Serialization (align with Kotlin 1.9.24)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     // Hilt for Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("com.google.dagger:hilt-android:2.54")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
