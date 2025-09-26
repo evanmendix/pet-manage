@@ -18,14 +18,17 @@ class PetService {
         )
 
         dbQuery {
-            Pets.insert {
-                it[id] = newPet.id
-                it[name] = newPet.name
-                it[photoUrl] = newPet.photoUrl
-            }
-            PetManagers.insert {
-                it[PetManagers.petId] = newPet.id
-                it[PetManagers.userId] = userId
+            // Use a transaction to ensure both inserts succeed or fail together
+            transaction {
+                Pets.insert {
+                    it[id] = newPet.id
+                    it[name] = newPet.name
+                    it[photoUrl] = newPet.photoUrl
+                }
+                PetManagers.insert {
+                    it[PetManagers.petId] = newPet.id
+                    it[PetManagers.userId] = userId
+                }
             }
         }
         return newPet
@@ -33,12 +36,30 @@ class PetService {
 
     suspend fun getPetsForUser(userId: String): List<Pet> {
         return dbQuery {
-            val petIds = PetManagers
+            // Step 1: Find all pets managed by the current user.
+            val myPetIds = PetManagers
                 .select { PetManagers.userId eq userId }
                 .map { it[PetManagers.petId] }
                 .distinct()
 
-            petIds.mapNotNull { petId ->
+            if (myPetIds.isEmpty()) {
+                return@dbQuery emptyList()
+            }
+
+            // Step 2: Find all users who also manage these pets (the "family").
+            val familyMemberIds = PetManagers
+                .select { PetManagers.petId inList myPetIds }
+                .map { it[PetManagers.userId] }
+                .distinct()
+
+            // Step 3: Find all pets managed by any family member.
+            val allFamilyPetIds = PetManagers
+                .select { PetManagers.userId inList familyMemberIds }
+                .map { it[PetManagers.petId] }
+                .distinct()
+
+            // Step 4: Fetch the full details for all family pets.
+            allFamilyPetIds.mapNotNull { petId ->
                 val petRow = Pets.select { Pets.id eq petId }.singleOrNull()
                 if (petRow != null) {
                     val managerIds = PetManagers.select { PetManagers.petId eq petId }.map { it[PetManagers.userId] }

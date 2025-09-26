@@ -43,7 +43,7 @@ API 端點維持不變，前綴為 `/api/v1`。
 
 *   `POST /users`: 建立新使用者。
 *   `PUT /users/{userId}`: 更新使用者資訊。
-*   `GET /pets`: 取得使用者所管理的所有寵物列表。
+*   `GET /pets`: 取得使用者所屬家庭的所有寵物列表。
 *   `POST /pets`: 新增一隻寵物，並將自己設為管理者。
 *   `POST /pets/{petId}/managers`: 將自己新增為特定寵物的管理者。
 *   `DELETE /pets/{petId}/managers`: 將自己從特定寵物的管理者名單中移除。
