@@ -24,6 +24,9 @@ dependencies {
     // Authentication
     implementation("io.ktor:ktor-server-auth-jvm")
 
+    // Monitoring / Call Logging
+    implementation("io.ktor:ktor-server-call-logging-jvm")
+
     // Firebase Admin SDK
     implementation("com.google.firebase:firebase-admin:9.5.0")
 

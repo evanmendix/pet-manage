@@ -57,11 +57,22 @@ class PetService {
 
     suspend fun addManagerToPet(petId: String, userId: String): Boolean {
         return dbQuery {
-            val result = PetManagers.insertIgnore {
+            // 先檢查寵物是否存在
+            val petExists = Pets.select { Pets.id eq petId }.count() > 0
+            if (!petExists) {
+                return@dbQuery false
+            }
+            
+            // 嘗試插入管理者關係，如果已存在則忽略（但視為成功）
+            PetManagers.insertIgnore {
                 it[PetManagers.petId] = petId
                 it[PetManagers.userId] = userId
             }
-            result.insertedCount > 0
+            
+            // 檢查管理者關係是否存在（無論是新插入還是已存在）
+            PetManagers.select { 
+                (PetManagers.petId eq petId) and (PetManagers.userId eq userId) 
+            }.count() > 0
         }
     }
 

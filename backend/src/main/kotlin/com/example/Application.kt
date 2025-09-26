@@ -3,6 +3,7 @@ package com.example
 import com.example.core.DatabaseFactory
 import com.example.core.FirebaseAdmin
 import com.example.plugins.configureRouting
+import com.example.plugins.configureMonitoring
 import com.example.plugins.configureSecurity
 import com.example.plugins.configureSerialization
 import io.ktor.server.application.*
@@ -20,6 +21,7 @@ fun main() {
 // Application module where we configure plugins and routes
 fun Application.module() {
     configureSerialization()
+    configureMonitoring()
     configureSecurity()
     configureRouting()
 }

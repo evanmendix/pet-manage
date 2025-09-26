@@ -1,5 +1,6 @@
 package com.supercatdev.catfeeder.ui.pet_management
-
+import android.util.Log
+import com.supercatdev.catfeeder.data.AuthRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.supercatdev.catfeeder.data.PetRepository
@@ -21,18 +22,22 @@ data class PetManagementUiState(
     val showAddPetDialog: Boolean = false,
     val petToDelete: Pet? = null,
     // A placeholder for the current user's ID. This would typically be fetched from an Auth repository.
-    val currentUserId: String = "user1"
+    val currentUserId: String? = null
+
 )
 
 @HiltViewModel
 class PetManagementViewModel @Inject constructor(
-    private val petRepository: PetRepository
+    private val petRepository: PetRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PetManagementUiState())
     val uiState: StateFlow<PetManagementUiState> = _uiState.asStateFlow()
 
     init {
+        val currentUser = authRepository.getCurrentUser()
+        _uiState.update { it.copy(currentUserId = currentUser?.uid) }
         fetchPets()
     }
 
@@ -40,9 +45,15 @@ class PetManagementViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
+                Log.d("PetManagementVM", "Starting to fetch pets...")
                 val pets = petRepository.getPets()
+                Log.d("PetManagementVM", "Successfully fetched ${pets.size} pets")
+                pets.forEachIndexed { index, pet ->
+                    Log.d("PetManagementVM", "Pet $index: ${pet.name} (${pet.id})")
+                }
                 _uiState.update { it.copy(isLoading = false, pets = pets) }
             } catch (e: Exception) {
+                Log.e("PetManagementVM", "Failed to fetch pets: ${e.message}", e)
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }

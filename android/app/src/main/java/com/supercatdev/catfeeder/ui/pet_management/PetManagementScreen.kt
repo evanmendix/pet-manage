@@ -71,7 +71,9 @@ fun PetManagementScreen(
                 items(uiState.pets) { pet ->
                     PetManagementItem(
                         pet = pet,
-                        isManaged = pet.managingUserIds.contains(uiState.currentUserId),
+                        isManaged = uiState.currentUserId?.let { userId ->
+                            pet.managingUserIds.contains(userId)
+                        } ?: false,
                         onManagementChange = { isManaged ->
                             viewModel.onManagementChange(pet, isManaged)
                         },

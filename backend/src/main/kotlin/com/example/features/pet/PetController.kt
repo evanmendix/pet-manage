@@ -23,7 +23,12 @@ fun Route.petRoutes() {
         authenticate {
             // Create a new pet and assign the user as a manager
             post {
-                val principal = call.principal<FirebaseUser>()!!
+                val principal = call.principal<FirebaseUser>()
+                if (principal == null) {
+                    call.respond(HttpStatusCode.Unauthorized, "Missing or invalid credentials")
+                    return@post
+                }
+
                 val request = call.receive<CreatePetRequest>()
                 val newPet = petService.createPet(principal.uid, request)
                 call.respond(HttpStatusCode.Created, newPet)
@@ -43,7 +48,11 @@ fun Route.petRoutes() {
             route("/{petId}/managers") {
                 // Add the authenticated user as a manager for the pet
                 post {
-                    val principal = call.principal<FirebaseUser>()!!
+                    val principal = call.principal<FirebaseUser>()
+                    if (principal == null) {
+                        call.respond(HttpStatusCode.Unauthorized, "Missing or invalid credentials")
+                        return@post
+                    }
                     val petId = call.parameters["petId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing petId")
 
                     val success = petService.addManagerToPet(petId, principal.uid)
@@ -56,7 +65,11 @@ fun Route.petRoutes() {
 
                 // Remove the authenticated user as a manager
                 delete {
-                    val principal = call.principal<FirebaseUser>()!!
+                    val principal = call.principal<FirebaseUser>()
+                    if (principal == null) {
+                        call.respond(HttpStatusCode.Unauthorized, "Missing or invalid credentials")
+                        return@delete
+                    }
                     val petId = call.parameters["petId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing petId")
 
                     val success = petService.removeManagerFromPet(petId, principal.uid)
