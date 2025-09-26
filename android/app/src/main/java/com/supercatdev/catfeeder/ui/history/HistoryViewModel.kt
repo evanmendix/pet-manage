@@ -40,15 +40,15 @@ class HistoryViewModel @Inject constructor(
 
     fun loadPetsAndHistory() {
         viewModelScope.launch {
-            _uiState.update { state -> state.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                // Fetch pets (prefer all pets, fallback to managed) and filter for managed ones
-                val allPets = petRepository.getAllPetsOrManaged()
+                // Fetch pets and filter for managed ones
+                val allPets = petRepository.getPets()
                 val managedPets = allPets.filter { it.managingUserIds.contains(_uiState.value.currentUserId) }
                 val selectedPetId = managedPets.firstOrNull()?.id
 
-                _uiState.update { state ->
-                    state.copy(
+                _uiState.update {
+                    it.copy(
                         managedPets = managedPets,
                         selectedPetId = selectedPetId
                     )
@@ -57,10 +57,10 @@ class HistoryViewModel @Inject constructor(
                 if (selectedPetId != null) {
                     loadHistoryForPet(selectedPetId, _uiState.value.timeRange)
                 } else {
-                    _uiState.update { state -> state.copy(isLoading = false, feedings = emptyList()) }
+                    _uiState.update { it.copy(isLoading = false, feedings = emptyList()) }
                 }
             } catch (e: Exception) {
-                _uiState.update { state -> state.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
@@ -76,20 +76,20 @@ class HistoryViewModel @Inject constructor(
                     TimeRange.LAST_30_DAYS -> endTime - 30 * 24 * 60 * 60 * 1000
                 }
                 val feedings = feedingRepository.getFeedings(petId, startTime, endTime)
-                _uiState.update { uiState -> uiState.copy(isLoading = false, feedings = feedings) }
+                _uiState.update { it.copy(isLoading = false, feedings = feedings) }
             } catch (e: Exception) {
-                _uiState.update { uiState -> uiState.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
     fun onPetSelected(petId: String) {
-        _uiState.update { uiState -> uiState.copy(selectedPetId = petId) }
+        _uiState.update { it.copy(selectedPetId = petId) }
         loadHistoryForPet(petId, _uiState.value.timeRange)
     }
 
     fun onTimeRangeSelected(timeRange: TimeRange) {
-        _uiState.update { state -> state.copy(timeRange = timeRange) }
+        _uiState.update { it.copy(timeRange = timeRange) }
         val petId = _uiState.value.selectedPetId
         if (petId != null) {
             loadHistoryForPet(petId, timeRange)

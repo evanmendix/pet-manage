@@ -4,23 +4,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import com.supercatdev.catfeeder.ui.AuthState
 import com.supercatdev.catfeeder.ui.MainViewModel
 import com.supercatdev.catfeeder.ui.feeding.FeedingScreen
 import com.supercatdev.catfeeder.ui.history.HistoryScreen
 import com.supercatdev.catfeeder.ui.navigation.Screen
 import com.supercatdev.catfeeder.ui.pet_management.PetManagementScreen
-import com.supercatdev.catfeeder.ui.pet_edit.PetEditScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,31 +29,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContent {
-            val authState by viewModel.authState.collectAsState()
+        viewModel.signInAnonymously()
 
-            when (val state = authState) {
-                is AuthState.Idle, AuthState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is AuthState.Success -> {
-                    AppNavigation()
-                }
-                is AuthState.Error -> {
-                    AlertDialog(
-                        onDismissRequest = { },
-                        title = { Text("Authentication Error") },
-                        text = { Text(state.message) },
-                        confirmButton = {
-                            Button(onClick = { finish() }) {
-                                Text("Close App")
-                            }
-                        }
-                    )
-                }
-            }
+        setContent {
+            AppNavigation()
         }
     }
 }
@@ -104,25 +81,8 @@ fun AppNavigation() {
             composable(Screen.History.route) {
                 HistoryScreen()
             }
-            composable(Screen.PetManagement.route) { backStackEntry ->
-                val refreshSignalState = backStackEntry.savedStateHandle.getStateFlow("refresh", "")
-                val refreshSignal = refreshSignalState.collectAsState().value.let { if (it.isBlank()) null else it }
-                PetManagementScreen(
-                    onNavigateToEdit = { petId -> navController.navigate("pet_edit/$petId") },
-                    refreshSignal = refreshSignal
-                )
-            }
-            composable(Screen.PetEdit.route) { backStackEntry ->
-                val petId = backStackEntry.arguments?.getString("petId") ?: ""
-                PetEditScreen(
-                    petId = petId,
-                    onDone = {
-                        // signal refresh to previous screen and navigate back
-                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh", System.currentTimeMillis().toString())
-                        navController.popBackStack()
-                    },
-                    onCancel = { navController.popBackStack() }
-                )
+            composable(Screen.PetManagement.route) {
+                PetManagementScreen()
             }
         }
     }

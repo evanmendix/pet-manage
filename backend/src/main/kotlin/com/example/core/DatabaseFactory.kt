@@ -7,8 +7,6 @@ import com.example.features.user.Users
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.addLogger
-import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -20,19 +18,9 @@ object DatabaseFactory {
         val user = System.getenv("DB_USER") ?: "root"
         val password = System.getenv("DB_PASSWORD") ?: "secret"
 
-        try {
-            println("DATABASE: Connecting to $jdbcURL")
-            val database = Database.connect(jdbcURL, driverClassName, user, password)
-            println("DATABASE: Connection successful.")
-            transaction(database) {
-                addLogger(StdOutSqlLogger)
-                println("DATABASE: Initializing schema...")
-                SchemaUtils.createMissingTablesAndColumns(Users, Pets, PetManagers, Feedings)
-                println("DATABASE: Schema initialization complete.")
-            }
-        } catch (e: Exception) {
-            println("DATABASE: Initialization failed!")
-            e.printStackTrace()
+        val database = Database.connect(jdbcURL, driverClassName, user, password)
+        transaction(database) {
+            SchemaUtils.createMissingTablesAndColumns(Users, Pets, PetManagers, Feedings)
         }
     }
 
