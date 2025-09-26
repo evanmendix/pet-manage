@@ -8,24 +8,25 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.petRoutes() {
+fun Route.publicPetRoutes() {
     val petService = PetService()
-
     route("/pets") {
         // Get all pets
         get {
             val pets = petService.getAllPets()
             call.respond(pets)
         }
+    }
+}
 
+fun Route.authenticatedPetRoutes() {
+    val petService = PetService()
+
+    route("/pets") {
         // Create a new pet and assign the user as a manager
         post {
             val principal = call.principal<FirebaseUser>()!!
             val request = call.receive<CreatePetRequest>()
-            if (request == null) {
-                call.respond(HttpStatusCode.BadRequest, "Invalid request body")
-                return@post
-            }
             val newPet = petService.createPet(principal.uid, request)
             call.respond(HttpStatusCode.Created, newPet)
         }
@@ -45,11 +46,7 @@ fun Route.petRoutes() {
             // Add the authenticated user as a manager for the pet
             post {
                 val principal = call.principal<FirebaseUser>()!!
-                val petId = call.parameters["petId"]
-                if (petId == null) {
-                    call.respond(HttpStatusCode.BadRequest, "Missing petId")
-                    return@post
-                }
+                val petId = call.parameters["petId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing petId")
 
                 val success = petService.addManagerToPet(petId, principal.uid)
                 if (success) {
@@ -62,11 +59,7 @@ fun Route.petRoutes() {
             // Remove the authenticated user as a manager
             delete {
                 val principal = call.principal<FirebaseUser>()!!
-                val petId = call.parameters["petId"]
-                if (petId == null) {
-                    call.respond(HttpStatusCode.BadRequest, "Missing petId")
-                    return@delete
-                }
+                val petId = call.parameters["petId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing petId")
 
                 val success = petService.removeManagerFromPet(petId, principal.uid)
                 if (success) {

@@ -1,7 +1,8 @@
 package com.example.plugins
 
 import com.example.features.feeding.feedingRoutes
-import com.example.features.pet.petRoutes
+import com.example.features.pet.authenticatedPetRoutes
+import com.example.features.pet.publicPetRoutes
 import com.example.features.user.userRoutes
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -15,13 +16,14 @@ fun Application.configureRouting() {
         }
 
         route("/api/v1") {
-            // Public routes are defined within the feature's routing function
+            // Public routes
+            publicPetRoutes()
             feedingRoutes()
 
             // Authenticated routes
             authenticate {
                 userRoutes()
-                petRoutes()
+                authenticatedPetRoutes()
             }
         }
     }
