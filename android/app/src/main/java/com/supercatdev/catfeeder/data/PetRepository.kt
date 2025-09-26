@@ -18,6 +18,13 @@ class PetRepository @Inject constructor(
         return petApiService.createPet(createPetRequest)
     }
 
+    suspend fun deletePet(petId: String) {
+        val response = petApiService.deletePet(petId)
+        if (!response.isSuccessful) {
+            throw Exception("API call to delete pet failed with code: ${response.code()}")
+        }
+    }
+
     suspend fun addManager(petId: String) {
         val response = petApiService.addManager(petId)
         if (!response.isSuccessful) {

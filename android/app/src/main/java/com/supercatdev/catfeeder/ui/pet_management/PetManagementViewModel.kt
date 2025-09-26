@@ -19,6 +19,7 @@ data class PetManagementUiState(
     val pets: List<Pet> = emptyList(),
     val error: String? = null,
     val showAddPetDialog: Boolean = false,
+    val petToDelete: Pet? = null,
     // A placeholder for the current user's ID. This would typically be fetched from an Auth repository.
     val currentUserId: String = "user1"
 )
@@ -79,6 +80,28 @@ class PetManagementViewModel @Inject constructor(
                 fetchPets() // Refresh the list to show the change
             } catch (e: Exception) {
                  _uiState.update { it.copy(error = "Failed to update management status: ${e.message}") }
+            }
+        }
+    }
+
+    fun onDeletePet(pet: Pet) {
+        _uiState.update { it.copy(petToDelete = pet) }
+    }
+
+    fun onDeleteCancelled() {
+        _uiState.update { it.copy(petToDelete = null) }
+    }
+
+    fun onDeleteConfirmed() {
+        _uiState.value.petToDelete?.let { pet ->
+            viewModelScope.launch {
+                try {
+                    petRepository.deletePet(pet.id)
+                    _uiState.update { it.copy(petToDelete = null) }
+                    fetchPets() // Refresh list
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(error = "Failed to delete pet: ${e.message}", petToDelete = null) }
+                }
             }
         }
     }

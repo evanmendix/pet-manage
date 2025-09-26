@@ -17,6 +17,9 @@ interface PetApiService {
     @POST("pets")
     suspend fun createPet(@Body request: CreatePetRequest): Pet
 
+    @DELETE("pets/{petId}")
+    suspend fun deletePet(@Path("petId") petId: String): Response<Unit>
+
     @POST("pets/{petId}/managers")
     suspend fun addManager(@Path("petId") petId: String): Response<Unit>
 

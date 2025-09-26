@@ -1,12 +1,7 @@
 package com.supercatdev.catfeeder.ui.pet_management
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -15,14 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.supercatdev.catfeeder.data.model.Pet
-
-import androidx.compose.ui.res.stringResource
-import com.supercatdev.catfeeder.R
-
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.supercatdev.catfeeder.R
+import com.supercatdev.catfeeder.data.model.Pet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +29,14 @@ fun PetManagementScreen(
         AddPetDialog(
             onDismiss = { viewModel.onAddPetDialogDismiss() },
             onConfirm = { petName -> viewModel.addPet(petName) }
+        )
+    }
+
+    uiState.petToDelete?.let { pet ->
+        DeletePetDialog(
+            petName = pet.name,
+            onDismiss = { viewModel.onDeleteCancelled() },
+            onConfirm = { viewModel.onDeleteConfirmed() }
         )
     }
 
@@ -72,7 +74,8 @@ fun PetManagementScreen(
                         isManaged = pet.managingUserIds.contains(uiState.currentUserId),
                         onManagementChange = { isManaged ->
                             viewModel.onManagementChange(pet, isManaged)
-                        }
+                        },
+                        onDeleteRequest = { viewModel.onDeletePet(pet) }
                     )
                 }
             }
@@ -84,9 +87,18 @@ fun PetManagementScreen(
 fun PetManagementItem(
     pet: Pet,
     isManaged: Boolean,
-    onManagementChange: (Boolean) -> Unit
+    onManagementChange: (Boolean) -> Unit,
+    onDeleteRequest: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { onDeleteRequest() }
+                )
+            }
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -139,6 +151,32 @@ fun AddPetDialog(
                 }
             ) {
                 Text(stringResource(R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+fun DeletePetDialog(
+    petName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete_pet_confirmation_title)) },
+        text = { Text(stringResource(R.string.delete_pet_confirmation_message, petName)) },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(stringResource(R.string.delete))
             }
         },
         dismissButton = {

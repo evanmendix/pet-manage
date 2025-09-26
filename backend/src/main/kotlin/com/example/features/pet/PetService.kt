@@ -34,40 +34,24 @@ class PetService {
         return newPet
     }
 
-    suspend fun getPetsForUser(userId: String): List<Pet> {
+    suspend fun getAllPets(): List<Pet> {
         return dbQuery {
-            // Step 1: Find all pets managed by the current user.
-            val myPetIds = PetManagers
-                .select { PetManagers.userId eq userId }
-                .map { it[PetManagers.petId] }
-                .distinct()
+            val allPets = Pets.selectAll().toList()
+            val allManagers = PetManagers.selectAll().toList()
 
-            if (myPetIds.isEmpty()) {
-                return@dbQuery emptyList()
+            allPets.map { petRow ->
+                val managerIds = allManagers
+                    .filter { it[PetManagers.petId] == petRow[Pets.id] }
+                    .map { it[PetManagers.userId] }
+                toPet(petRow, managerIds)
             }
+        }
+    }
 
-            // Step 2: Find all users who also manage these pets (the "family").
-            val familyMemberIds = PetManagers
-                .select { PetManagers.petId inList myPetIds }
-                .map { it[PetManagers.userId] }
-                .distinct()
-
-            // Step 3: Find all pets managed by any family member.
-            val allFamilyPetIds = PetManagers
-                .select { PetManagers.userId inList familyMemberIds }
-                .map { it[PetManagers.petId] }
-                .distinct()
-
-            // Step 4: Fetch the full details for all family pets.
-            allFamilyPetIds.mapNotNull { petId ->
-                val petRow = Pets.select { Pets.id eq petId }.singleOrNull()
-                if (petRow != null) {
-                    val managerIds = PetManagers.select { PetManagers.petId eq petId }.map { it[PetManagers.userId] }
-                    toPet(petRow, managerIds)
-                } else {
-                    null
-                }
-            }
+    suspend fun deletePet(petId: String): Boolean = dbQuery {
+        transaction {
+            PetManagers.deleteWhere { PetManagers.petId eq petId }
+            Pets.deleteWhere { Pets.id eq petId } > 0
         }
     }
 

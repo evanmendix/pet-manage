@@ -12,10 +12,9 @@ fun Route.petRoutes() {
     val petService = PetService()
 
     route("/pets") {
-        // Get all pets managed by the user
+        // Get all pets
         get {
-            val principal = call.principal<FirebaseUser>()!!
-            val pets = petService.getPetsForUser(principal.uid)
+            val pets = petService.getAllPets()
             call.respond(pets)
         }
 
@@ -29,6 +28,17 @@ fun Route.petRoutes() {
             }
             val newPet = petService.createPet(principal.uid, request)
             call.respond(HttpStatusCode.Created, newPet)
+        }
+
+        // Delete a pet
+        delete("/{petId}") {
+            val petId = call.parameters["petId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing petId")
+            val deleted = petService.deletePet(petId)
+            if (deleted) {
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
         }
 
         route("/{petId}/managers") {
