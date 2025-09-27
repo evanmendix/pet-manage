@@ -7,7 +7,6 @@
 - ✅ PostgreSQL 資料庫連接與 Exposed 整合
 - ✅ Firebase Authentication 整合
 - ✅ 寵物管理 API 端點：
-    - `GET /api/v1/pets` - 獲取所有寵物
     - `POST /api/v1/pets` - 新增寵物
     - `DELETE /api/v1/pets/{petId}` - 刪除寵物
     - `POST /api/v1/pets/{petId}/managers` - 新增寵物管理者
@@ -16,16 +15,12 @@
 ### Android 應用
 - ✅ 基礎專案架構（Hilt, Retrofit, Compose）
 - ✅ Firebase Authentication 整合
-- ✅ 寵物管理畫面：
+- ✅ 寵物管理畫面:
     - 寵物列表顯示
     - 新增寵物功能
     - 刪除寵物功能（長按）
     - 管理者設定切換
-
-### 資料庫架構
-- ✅ `pets` 表：寵物基本資料
-- ✅ `pet_managers` 表：寵物與管理者關聯
-- ✅ 支援多對多關係（一個寵物可有多個管理者）
+    - 重複餵食確認對話框（防呆機制）：若偵測到最近已餵過正餐，先提示使用者確認是否要重複餵食。
 
 ## 技術架構決策
 
