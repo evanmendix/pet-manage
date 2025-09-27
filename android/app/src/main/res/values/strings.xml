@@ -11,6 +11,7 @@
     <string name="duplicate_feeding_message">最近已經餵過正餐了，您確定要重複餵食嗎？</string>
     <string name="confirm">確定</string>
     <string name="cancel">取消</string>
+    <string name="confirm_feed">強制餵食</string>
     <string name="fed_by">由 %1$s (%2$s) 餵食</string>
     <string name="overwrite">覆蓋紀錄</string>
     <string name="home">主畫面</string>

@@ -127,7 +127,7 @@ fun FeedingScreen(
                         }
                         uiState.error?.let {
                             Text(
-                                text = stringResource(R.string.error_prefix, it),
+                                text = stringResource(R.string.error_message, it),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium
                             )
