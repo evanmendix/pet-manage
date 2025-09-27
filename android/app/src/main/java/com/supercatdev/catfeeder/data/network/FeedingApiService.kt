@@ -1,5 +1,6 @@
 package com.supercatdev.catfeeder.data.network
 
+import com.supercatdev.catfeeder.data.model.CreateFeedingRequest
 import com.supercatdev.catfeeder.data.model.Feeding
 import retrofit2.Response
 import retrofit2.http.*
@@ -13,15 +14,15 @@ interface FeedingApiService {
         @Query("endTime") endTime: Long? = null
     ): List<Feeding>
 
-    @GET("status/current")
-    suspend fun getCurrentStatus(): Response<Feeding> // Use Response<T> to handle 204 No Content
+    @GET("feedings/status/current")
+    suspend fun getCurrentStatus(@Query("petId") petId: String): Response<Feeding> // Use Response<T> to handle 204 No Content
 
     @POST("feedings")
     suspend fun addFeeding(
-        @Body feeding: Feeding,
+        @Body request: CreateFeedingRequest,
         @Query("force") force: Boolean
     ): Response<Feeding> // Use Response<T> to handle 409 Conflict
 
     @POST("feedings/overwrite")
-    suspend fun overwriteLastMeal(@Body feeding: Feeding): Response<Feeding>
+    suspend fun overwriteLastMeal(@Body request: CreateFeedingRequest): Response<Feeding>
 }

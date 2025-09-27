@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.supercatdev.catfeeder.data.AuthRepository
 import com.supercatdev.catfeeder.data.FeedingRepository
 import com.supercatdev.catfeeder.data.PetRepository
+import com.supercatdev.catfeeder.data.model.CreateFeedingRequest
 import com.supercatdev.catfeeder.data.model.Feeding
 import com.supercatdev.catfeeder.data.model.Pet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,6 @@ data class FeedingUiState(
     val showDuplicateFeedingDialog: Boolean = false,
     val managedPets: List<Pet> = emptyList(),
     val selectedPetId: String? = null,
-    // Current user's ID, fetched from AuthRepository
     val currentUserId: String? = null
 )
 
@@ -37,7 +37,6 @@ class FeedingViewModel @Inject constructor(
     val uiState: StateFlow<FeedingUiState> = _uiState.asStateFlow()
 
     init {
-        // Initialize current user id from AuthRepository, then refresh data
         val currentUserId = authRepository.getCurrentUser()?.uid
         _uiState.update { it.copy(currentUserId = currentUserId) }
         refreshAllData()
@@ -47,7 +46,6 @@ class FeedingViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                // Fetch pets and filter for managed ones
                 val allPets = petRepository.getPets()
                 val userId = _uiState.value.currentUserId
                 val managedPets = if (userId != null) {
@@ -56,18 +54,23 @@ class FeedingViewModel @Inject constructor(
                     emptyList()
                 }
 
-                // Update selected pet logic
-                val selectedPetId = if (managedPets.size == 1) managedPets.first().id else null
+                val currentSelectedId = _uiState.value.selectedPetId
+                val newSelectedPetId = when {
+                    managedPets.size == 1 -> managedPets.first().id
+                    managedPets.any { it.id == currentSelectedId } -> currentSelectedId
+                    else -> null
+                }
 
-                _uiState.update { it.copy(managedPets = managedPets, selectedPetId = selectedPetId) }
+                _uiState.update { it.copy(managedPets = managedPets, selectedPetId = newSelectedPetId) }
 
-                // Fetch feeding status
-                // TODO: The backend needs to be updated to fetch status for a specific pet or family.
-                // For now, we continue to fetch the global status.
-                feedingRepository.getCurrentStatus().onSuccess { status ->
-                    _uiState.update { it.copy(isLoading = false, currentStatus = status) }
-                }.onFailure { throwable ->
-                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                if (newSelectedPetId != null) {
+                    feedingRepository.getCurrentStatus(newSelectedPetId).onSuccess { status ->
+                        _uiState.update { it.copy(isLoading = false, currentStatus = status) }
+                    }.onFailure { throwable ->
+                        _uiState.update { it.copy(isLoading = false, error = throwable.message, currentStatus = null) }
+                    }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, currentStatus = null) }
                 }
 
             } catch (e: Exception) {
@@ -78,17 +81,20 @@ class FeedingViewModel @Inject constructor(
 
     fun selectPet(petId: String) {
         _uiState.update { it.copy(selectedPetId = petId) }
+        refreshAllData() // Refresh status when pet is selected
     }
 
     fun addFeeding(type: String, force: Boolean = false) {
-        val petId = uiState.value.selectedPetId ?: return // Do nothing if no pet is selected
-        val userId = uiState.value.currentUserId ?: return // Do nothing if no current user
+        val petId = uiState.value.selectedPetId ?: return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, showDuplicateFeedingDialog = false) }
-            // TODO: The 'Feeding' model on the backend needs a 'petId' field.
-            val newFeeding = Feeding(userId = userId, timestamp = System.currentTimeMillis(), type = type)
-            feedingRepository.addFeeding(newFeeding, force).onSuccess {
+            val request = CreateFeedingRequest(
+                petId = petId,
+                timestamp = System.currentTimeMillis(),
+                type = type
+            )
+            feedingRepository.addFeeding(request, force).onSuccess {
                 refreshAllData()
             }.onFailure { throwable ->
                 if (throwable.message?.contains("Duplicate feeding detected") == true) {
@@ -105,13 +111,16 @@ class FeedingViewModel @Inject constructor(
     }
 
     fun overwriteLastMeal(type: String) {
-         val petId = uiState.value.selectedPetId ?: return // Do nothing if no pet is selected
-         val userId = uiState.value.currentUserId ?: return // Do nothing if no current user
+        val petId = uiState.value.selectedPetId ?: return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val newFeeding = Feeding(userId = userId, timestamp = System.currentTimeMillis(), type = type)
-            feedingRepository.overwriteLastMeal(newFeeding).onSuccess {
+            val request = CreateFeedingRequest(
+                petId = petId,
+                timestamp = System.currentTimeMillis(),
+                type = type
+            )
+            feedingRepository.overwriteLastMeal(request).onSuccess {
                 refreshAllData()
             }.onFailure { throwable ->
                 _uiState.update { it.copy(isLoading = false, error = throwable.message) }

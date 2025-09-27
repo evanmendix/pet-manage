@@ -1,5 +1,6 @@
 package com.supercatdev.catfeeder.data
 
+import com.supercatdev.catfeeder.data.model.CreateFeedingRequest
 import com.supercatdev.catfeeder.data.model.Feeding
 import com.supercatdev.catfeeder.data.network.FeedingApiService
 import javax.inject.Inject
@@ -11,9 +12,9 @@ class FeedingRepository @Inject constructor(
         return apiService.getFeedings(petId, startTime, endTime)
     }
 
-    suspend fun getCurrentStatus(): Result<Feeding?> {
+    suspend fun getCurrentStatus(petId: String): Result<Feeding?> {
         return try {
-            val response = apiService.getCurrentStatus()
+            val response = apiService.getCurrentStatus(petId)
             if (response.isSuccessful) {
                 Result.success(response.body())
             } else {
@@ -24,9 +25,9 @@ class FeedingRepository @Inject constructor(
         }
     }
 
-    suspend fun addFeeding(feeding: Feeding, force: Boolean = false): Result<Feeding?> {
+    suspend fun addFeeding(request: CreateFeedingRequest, force: Boolean = false): Result<Feeding?> {
         return try {
-            val response = apiService.addFeeding(feeding, force)
+            val response = apiService.addFeeding(request, force)
             when {
                 response.isSuccessful -> Result.success(response.body())
                 response.code() == 409 -> Result.failure(Exception("Duplicate feeding detected."))
@@ -37,9 +38,9 @@ class FeedingRepository @Inject constructor(
         }
     }
 
-    suspend fun overwriteLastMeal(feeding: Feeding): Result<Feeding?> {
+    suspend fun overwriteLastMeal(request: CreateFeedingRequest): Result<Feeding?> {
         return try {
-            val response = apiService.overwriteLastMeal(feeding)
+            val response = apiService.overwriteLastMeal(request)
             if (response.isSuccessful) {
                 Result.success(response.body())
             } else {
