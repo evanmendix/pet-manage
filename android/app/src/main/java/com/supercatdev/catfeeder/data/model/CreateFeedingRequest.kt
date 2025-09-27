@@ -7,5 +7,6 @@ data class CreateFeedingRequest(
     val petId: String,
     val timestamp: Long,
     val type: String, // "meal" or "snack"
-    val photoUrl: String? = null
+    val photoUrl: String? = null,
+    val force: Boolean = false
 )

@@ -25,9 +25,9 @@ class FeedingRepository @Inject constructor(
         }
     }
 
-    suspend fun addFeeding(request: CreateFeedingRequest, force: Boolean = false): Result<Feeding?> {
+    suspend fun addFeeding(request: CreateFeedingRequest): Result<Feeding?> {
         return try {
-            val response = apiService.addFeeding(request, force)
+            val response = apiService.addFeeding(request)
             when {
                 response.isSuccessful -> Result.success(response.body())
                 response.code() == 409 -> Result.failure(Exception("Duplicate feeding detected."))

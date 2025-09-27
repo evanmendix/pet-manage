@@ -108,9 +108,10 @@ class FeedingViewModel @Inject constructor(
             val request = CreateFeedingRequest(
                 petId = petId,
                 timestamp = System.currentTimeMillis(),
-                type = type
+                type = type,
+                force = force
             )
-            feedingRepository.addFeeding(request, force).onSuccess {
+            feedingRepository.addFeeding(request).onSuccess {
                 refreshAllData()
             }.onFailure { throwable ->
                 if (throwable.message?.contains("Duplicate feeding detected") == true) {

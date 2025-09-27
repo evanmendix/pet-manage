@@ -2,11 +2,10 @@ package com.supercatdev.catfeeder.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.supercatdev.catfeeder.data.AuthRepository
-import com.supercatdev.catfeeder.data.FeedingRepository
-import com.supercatdev.catfeeder.data.PetRepository
+import com.supercatdev.catfeeder.data.*
 import com.supercatdev.catfeeder.data.model.Feeding
 import com.supercatdev.catfeeder.data.model.Pet
+import com.supercatdev.catfeeder.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +16,7 @@ import javax.inject.Inject
 
 data class HistoryUiState(
     val feedings: List<Feeding> = emptyList(),
+    val users: Map<String, User> = emptyMap(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val managedPets: List<Pet> = emptyList(),
@@ -30,7 +30,8 @@ data class HistoryUiState(
 class HistoryViewModel @Inject constructor(
     private val feedingRepository: FeedingRepository,
     private val petRepository: PetRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HistoryUiState(isLoading = true))
@@ -85,7 +86,9 @@ class HistoryViewModel @Inject constructor(
                     TimeRange.LAST_30_DAYS -> endTime - 30 * 24 * 60 * 60 * 1000
                 }
                 val feedings = feedingRepository.getFeedings(petId, startTime, endTime)
-                _uiState.update { it.copy(isLoading = false, feedings = feedings) }
+                val userIds = feedings.map { it.userId }.distinct()
+                val users = userRepository.getUsers(userIds)
+                _uiState.update { it.copy(isLoading = false, feedings = feedings, users = users) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }

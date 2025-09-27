@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.supercatdev.catfeeder.R
 import com.supercatdev.catfeeder.data.model.Feeding
 import com.supercatdev.catfeeder.data.model.Pet
+import com.supercatdev.catfeeder.data.model.User
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.TimeZone
@@ -63,7 +64,7 @@ fun HistoryScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(uiState.feedings) { feeding ->
-                            FeedingCard(feeding)
+                            FeedingCard(feeding, uiState.users[feeding.userId])
                         }
                     }
                 } else {
@@ -188,7 +189,7 @@ fun TimeRangeButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun FeedingCard(feeding: Feeding) {
+fun FeedingCard(feeding: Feeding, feeder: User?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -202,7 +203,8 @@ fun FeedingCard(feeding: Feeding) {
                 "snack" -> stringResource(R.string.snack)
                 else -> feeding.type
             }
-            Text(text = stringResource(R.string.fed_by, feeding.userId, typeString), style = MaterialTheme.typography.bodyLarge)
+            val feederName = feeder?.name ?: feeding.userId
+            Text(text = stringResource(R.string.fed_by, feederName, typeString), style = MaterialTheme.typography.bodyLarge)
             Text(text = stringResource(R.string.feeding_time, formattedTime), style = MaterialTheme.typography.bodyMedium)
         }
     }

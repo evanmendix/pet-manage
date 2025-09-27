@@ -19,8 +19,7 @@ interface FeedingApiService {
 
     @POST("feedings")
     suspend fun addFeeding(
-        @Body request: CreateFeedingRequest,
-        @Query("force") force: Boolean
+        @Body request: CreateFeedingRequest
     ): Response<Feeding> // Use Response<T> to handle 409 Conflict
 
     @POST("feedings/overwrite")
