@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.supercatdev.catfeeder.data.AuthRepository
 import com.supercatdev.catfeeder.data.FeedingRepository
 import com.supercatdev.catfeeder.data.PetRepository
+import com.supercatdev.catfeeder.data.UserRepository
 import com.supercatdev.catfeeder.data.model.CreateFeedingRequest
 import com.supercatdev.catfeeder.data.model.Feeding
 import com.supercatdev.catfeeder.data.model.Pet
+import com.supercatdev.catfeeder.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,9 +20,11 @@ import javax.inject.Inject
 
 data class FeedingUiState(
     val currentStatus: Feeding? = null,
+    val currentFeeder: User? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val showDuplicateFeedingDialog: Boolean = false,
+    val pendingFeedingType: String? = null, // Store the type of feeding that triggered the dialog
     val managedPets: List<Pet> = emptyList(),
     val selectedPetId: String? = null,
     val currentUserId: String? = null
@@ -30,7 +34,8 @@ data class FeedingUiState(
 class FeedingViewModel @Inject constructor(
     private val feedingRepository: FeedingRepository,
     private val petRepository: PetRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedingUiState(isLoading = true))
@@ -44,7 +49,7 @@ class FeedingViewModel @Inject constructor(
 
     private fun refreshAllData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null, currentFeeder = null) }
             try {
                 val allPets = petRepository.getPets()
                 val userId = _uiState.value.currentUserId
@@ -65,12 +70,23 @@ class FeedingViewModel @Inject constructor(
 
                 if (newSelectedPetId != null) {
                     feedingRepository.getCurrentStatus(newSelectedPetId).onSuccess { status ->
-                        _uiState.update { it.copy(isLoading = false, currentStatus = status) }
+                        if (status != null) {
+                            val users = userRepository.getUsers(listOf(status.userId))
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    currentStatus = status,
+                                    currentFeeder = users[status.userId]
+                                )
+                            }
+                        } else {
+                            _uiState.update { it.copy(isLoading = false, currentStatus = null, currentFeeder = null) }
+                        }
                     }.onFailure { throwable ->
-                        _uiState.update { it.copy(isLoading = false, error = throwable.message, currentStatus = null) }
+                        _uiState.update { it.copy(isLoading = false, error = throwable.message, currentStatus = null, currentFeeder = null) }
                     }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, currentStatus = null) }
+                    _uiState.update { it.copy(isLoading = false, currentStatus = null, currentFeeder = null) }
                 }
 
             } catch (e: Exception) {
@@ -98,7 +114,13 @@ class FeedingViewModel @Inject constructor(
                 refreshAllData()
             }.onFailure { throwable ->
                 if (throwable.message?.contains("Duplicate feeding detected") == true) {
-                    _uiState.update { it.copy(isLoading = false, showDuplicateFeedingDialog = true) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            showDuplicateFeedingDialog = true,
+                            pendingFeedingType = type
+                        )
+                    }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = throwable.message) }
                 }
@@ -107,7 +129,7 @@ class FeedingViewModel @Inject constructor(
     }
 
     fun dismissDuplicateFeedingDialog() {
-        _uiState.update { it.copy(showDuplicateFeedingDialog = false) }
+        _uiState.update { it.copy(showDuplicateFeedingDialog = false, pendingFeedingType = null) }
     }
 
     fun overwriteLastMeal(type: String) {

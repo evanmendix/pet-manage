@@ -87,4 +87,28 @@ class UserService {
         val updatedDoc = userDocRef.get().get()
         return updatedDoc.toObject(User::class.java)
     }
+
+    /**
+     * Finds multiple users by their IDs across all families using a collection group query with a 'whereIn' clause.
+     */
+    fun getUsers(userIds: List<String>): List<User> {
+        if (userIds.isEmpty()) {
+            return emptyList()
+        }
+
+        // Firestore 'whereIn' queries are limited to 10 items per query.
+        // We need to chunk the userIds list into sublists of 10.
+        val chunks = userIds.distinct().chunked(10)
+        val users = mutableListOf<User>()
+
+        for (chunk in chunks) {
+            val query = db.collectionGroup("users").whereIn("id", chunk)
+            val future = query.get()
+            val querySnapshot = future.get()
+            if (!querySnapshot.isEmpty) {
+                users.addAll(querySnapshot.documents.mapNotNull { it.toObject(User::class.java) })
+            }
+        }
+        return users
+    }
 }

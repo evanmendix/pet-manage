@@ -1,7 +1,5 @@
 package com.example.features.user
 
-import com.example.features.user.CreateUserRequest
-import com.example.features.user.UpdateUserRequest
 import com.example.security.FirebaseUser
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
@@ -67,6 +65,12 @@ fun Route.userRoutes() {
             } else {
                 call.respond(HttpStatusCode.NotFound, "User not found")
             }
+        }
+
+        post("/batch") {
+            val request = call.receive<BatchUserRequest>()
+            val users = userService.getUsers(request.userIds)
+            call.respond(users)
         }
     }
 }

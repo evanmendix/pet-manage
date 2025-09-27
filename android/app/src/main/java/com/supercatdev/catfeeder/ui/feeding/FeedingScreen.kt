@@ -76,7 +76,8 @@ fun FeedingScreen(
                                 "snack" -> stringResource(R.string.snack)
                                 else -> it.type
                             }
-                            Text(stringResource(R.string.last_fed_by, it.userId, typeString))
+                            val feederName = uiState.currentFeeder?.name ?: it.userId
+                            Text(stringResource(R.string.last_fed_by, feederName, typeString))
                             Text(stringResource(R.string.feeding_time, formattedTime))
                         } ?: Text(stringResource(R.string.no_feeding_records))
 
@@ -101,10 +102,35 @@ fun FeedingScreen(
 
                         // Error Handling Dialogs
                         if (uiState.showDuplicateFeedingDialog) {
-                            // ... (AlertDialog code remains the same)
+                            AlertDialog(
+                                onDismissRequest = { viewModel.dismissDuplicateFeedingDialog() },
+                                title = { Text(stringResource(R.string.duplicate_feeding_title)) },
+                                text = { Text(stringResource(R.string.duplicate_feeding_message)) },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            uiState.pendingFeedingType?.let { type ->
+                                                viewModel.addFeeding(type, force = true)
+                                            }
+                                            viewModel.dismissDuplicateFeedingDialog()
+                                        }
+                                    ) {
+                                        Text(stringResource(R.string.confirm_feed))
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { viewModel.dismissDuplicateFeedingDialog() }) {
+                                        Text(stringResource(R.string.cancel))
+                                    }
+                                }
+                            )
                         }
                         uiState.error?.let {
-                            // ... (Error text display remains the same)
+                            Text(
+                                text = stringResource(R.string.error_prefix, it),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }

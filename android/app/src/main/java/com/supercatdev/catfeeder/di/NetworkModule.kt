@@ -3,6 +3,7 @@ package com.supercatdev.catfeeder.di
 import com.supercatdev.catfeeder.data.network.AuthInterceptor
 import com.supercatdev.catfeeder.data.network.FeedingApiService
 import com.supercatdev.catfeeder.data.network.PetApiService
+import com.supercatdev.catfeeder.data.network.UserApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -54,5 +55,11 @@ object NetworkModule {
     @Singleton
     fun providePetApiService(retrofit: Retrofit): PetApiService {
         return retrofit.create(PetApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApiService(retrofit: Retrofit): UserApiService {
+        return retrofit.create(UserApiService::class.java)
     }
 }
