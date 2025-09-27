@@ -3,6 +3,12 @@ package com.example.features.user
 import com.example.features.pet.Pet
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
+import com.example.core.DatabaseFactory.dbQuery
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 
 class UserService {
 
@@ -89,26 +95,25 @@ class UserService {
     }
 
     /**
-     * Finds multiple users by their IDs across all families using a collection group query with a 'whereIn' clause.
+     * Finds multiple users by their IDs using PostgreSQL `users` table (Exposed).
      */
     fun getUsers(userIds: List<String>): List<User> {
-        if (userIds.isEmpty()) {
-            return emptyList()
-        }
+        if (userIds.isEmpty()) return emptyList()
 
-        // Firestore 'whereIn' queries are limited to 10 items per query.
-        // We need to chunk the userIds list into sublists of 10.
-        val chunks = userIds.distinct().chunked(10)
-        val users = mutableListOf<User>()
-
-        for (chunk in chunks) {
-            val query = db.collectionGroup("users").whereIn("id", chunk)
-            val future = query.get()
-            val querySnapshot = future.get()
-            if (!querySnapshot.isEmpty) {
-                users.addAll(querySnapshot.documents.mapNotNull { it.toObject(User::class.java) })
+        val distinctIds = userIds.distinct()
+        return kotlinx.coroutines.runBlocking {
+            dbQuery {
+                Users
+                    .slice(Users.id, Users.name, Users.profilePictureUrl)
+                    .select { Users.id inList distinctIds }
+                    .map { row ->
+                        User(
+                            id = row[Users.id],
+                            name = row[Users.name],
+                            profilePictureUrl = row[Users.profilePictureUrl]
+                        )
+                    }
             }
         }
-        return users
     }
 }
