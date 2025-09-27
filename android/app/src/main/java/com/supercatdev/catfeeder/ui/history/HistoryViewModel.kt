@@ -2,6 +2,7 @@ package com.supercatdev.catfeeder.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.supercatdev.catfeeder.data.AuthRepository
 import com.supercatdev.catfeeder.data.FeedingRepository
 import com.supercatdev.catfeeder.data.PetRepository
 import com.supercatdev.catfeeder.data.model.Feeding
@@ -21,20 +22,23 @@ data class HistoryUiState(
     val managedPets: List<Pet> = emptyList(),
     val selectedPetId: String? = null,
     val timeRange: TimeRange = TimeRange.LAST_24_HOURS,
-    // Placeholder
-    val currentUserId: String = "user1"
+    // Current user's ID, fetched from AuthRepository
+    val currentUserId: String? = null
 )
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val feedingRepository: FeedingRepository,
-    private val petRepository: PetRepository
+    private val petRepository: PetRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HistoryUiState(isLoading = true))
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
     init {
+        val currentUserId = authRepository.getCurrentUser()?.uid
+        _uiState.update { it.copy(currentUserId = currentUserId) }
         loadPetsAndHistory()
     }
 
@@ -44,7 +48,12 @@ class HistoryViewModel @Inject constructor(
             try {
                 // Fetch pets and filter for managed ones
                 val allPets = petRepository.getPets()
-                val managedPets = allPets.filter { it.managingUserIds.contains(_uiState.value.currentUserId) }
+                val userId = _uiState.value.currentUserId
+                val managedPets = if (userId != null) {
+                    allPets.filter { it.managingUserIds.contains(userId) }
+                } else {
+                    emptyList()
+                }
                 val selectedPetId = managedPets.firstOrNull()?.id
 
                 _uiState.update {

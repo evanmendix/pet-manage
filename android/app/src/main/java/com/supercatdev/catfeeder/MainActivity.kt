@@ -52,15 +52,30 @@ fun AppNavigation() {
                 bottomBarItems.forEach { screen ->
                     NavigationBarItem(
                         icon = { screen.icon?.let { Icon(it, contentDescription = screen.title) } },
-                        label = { screen.title?.let { Text(it) } },
+                        // Remove labels by setting label to null
+                        label = null,
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            // When tapping Home (Feeding), reset to initial Home state.
+                            if (screen.route == Screen.Feeding.route) {
+                                navController.navigate(Screen.Feeding.route) {
+                                    // Clear up to start and recreate Home without restoring previous state
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        inclusive = true
+                                        saveState = false
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = false
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            } else {
+                                // Default behavior for other tabs (e.g., History)
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
                     )
