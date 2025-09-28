@@ -6,20 +6,38 @@
 - ✅ 基礎專案架構設定
 - ✅ PostgreSQL 資料庫連接與 Exposed 整合
 - ✅ Firebase Authentication 整合
-- ✅ 寵物管理 API 端點：
-    - `POST /api/v1/pets` - 新增寵物
-    - `DELETE /api/v1/pets/{petId}` - 刪除寵物
-    - `POST /api/v1/pets/{petId}/managers` - 新增寵物管理者
-    - `DELETE /api/v1/pets/{petId}/managers` - 移除寵物管理者
+- ✅ **寵物管理 API (`/api/v1/pets`)**:
+    - `GET /` - 取得所有寵物
+    - `POST /` - 新增寵物
+    - `DELETE /{petId}` - 刪除寵物
+    - `POST /{petId}/managers` - 新增寵物管理者
+    - `DELETE /{petId}/managers` - 移除寵物管理者
+- ✅ **餵食記錄 API (`/api/v1/feedings`)**:
+    - `GET ?petId={petId}` - 取得餵食記錄 (可選 `startTime`, `endTime` 過濾)
+    - `POST /` - 新增餵食記錄
+    - `POST /overwrite` - 覆蓋上一餐紀錄
+    - `GET /status/current?petId={petId}` - 取得寵物當前狀態
+- ✅ **使用者資料 API (`/api/v1/users`)**:
+    - `POST /` - 建立使用者資料
+    - `GET /{userId}` - 取得使用者資料
+    - `PUT /{userId}` - 更新使用者資料
+    - `POST /batch` - 批次取得多位使用者資料
 
 ### Android 應用
 - ✅ 基礎專案架構（Hilt, Retrofit, Compose）
 - ✅ Firebase Authentication 整合
-- ✅ 寵物管理畫面:
+- ✅ **主畫面**:
+    - 顯示寵物目前餵食狀態
+    - 快速新增餵食紀錄按鈕
+- ✅ **寵物管理畫面**:
     - 寵物列表顯示
-    - 新增寵物功能
-    - 刪除寵物功能（長按）
-    - 管理者設定切換
+    - 新增/刪除寵物
+    - 管理者設定
+- ✅ **餵食歷史記錄畫面**:
+    - 顯示歷史餵食列表
+- ✅ **設定畫面**:
+    - 使用者個人資料設定
+- ✅ **通用功能**:
     - 重複餵食確認對話框（防呆機制）：若偵測到最近已餵過正餐，先提示使用者確認是否要重複餵食。
 
 ## 技術架構決策
@@ -36,15 +54,11 @@
 
 ## 待實作功能
 
-### Phase 2 剩餘任務
-- ❌ 餵食記錄功能
-- ❌ 主畫面餵食歷史顯示
-- ❌ 首次啟動個人資料設定
-
 ### Phase 3 功能
 - ❌ 體重追蹤
 - ❌ 相簿功能
 - ❌ 推播通知
+- ⚠️ **後端程式碼整理**: `features/pets` 路徑底下有舊的 `petRoutes` 未被使用，建議移除以避免混淆。
 
 ## 已解決的技術問題
 
