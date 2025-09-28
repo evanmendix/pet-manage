@@ -19,6 +19,7 @@ import com.supercatdev.catfeeder.ui.feeding.FeedingScreen
 import com.supercatdev.catfeeder.ui.history.HistoryScreen
 import com.supercatdev.catfeeder.ui.navigation.Screen
 import com.supercatdev.catfeeder.ui.pet_management.PetManagementScreen
+import com.supercatdev.catfeeder.ui.settings.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -90,14 +91,22 @@ fun AppNavigation() {
         ) {
             composable(Screen.Feeding.route) {
                 FeedingScreen(
-                    onNavigateToPetManagement = { navController.navigate(Screen.PetManagement.route) }
+                    onNavigateToPetManagement = { navController.navigate(Screen.PetManagement.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
                 )
             }
             composable(Screen.History.route) {
-                HistoryScreen()
+                HistoryScreen(
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                )
             }
             composable(Screen.PetManagement.route) {
                 PetManagementScreen()
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    onNavigateToPetManagement = { navController.navigate(Screen.PetManagement.route) }
+                )
             }
         }
     }

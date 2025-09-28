@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +25,8 @@ import java.util.TimeZone
 fun FeedingScreen(
     modifier: Modifier = Modifier,
     viewModel: FeedingViewModel = hiltViewModel(),
-    onNavigateToPetManagement: () -> Unit
+    onNavigateToPetManagement: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -34,6 +36,12 @@ fun FeedingScreen(
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
                     IconButton(onClick = onNavigateToPetManagement) {
                         Icon(
                             imageVector = Icons.Default.Pets,
@@ -44,7 +52,9 @@ fun FeedingScreen(
             )
         }
     ) { innerPadding ->
-        Surface(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Surface(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
             Box(contentAlignment = Alignment.Center) {
                 if (uiState.isLoading && uiState.managedPets.isEmpty()) {
                     CircularProgressIndicator()
@@ -185,5 +195,5 @@ fun PetSelector(
 @Preview(showBackground = true)
 @Composable
 fun FeedingScreenPreview() {
-    FeedingScreen(onNavigateToPetManagement = {})
+    FeedingScreen(onNavigateToPetManagement = {}, onNavigateToSettings = {})
 }

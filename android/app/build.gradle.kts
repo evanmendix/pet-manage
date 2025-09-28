@@ -45,6 +45,11 @@ android {
     }
 }
 
+// KAPT configuration for annotation processors
+kapt {
+    correctErrorTypes = true
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
@@ -67,6 +72,8 @@ dependencies {
     // Hilt for Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-compiler:2.48")
+    // Add Dagger compiler so Dagger-specific processor options are recognized
+    kapt("com.google.dagger:dagger-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Firebase

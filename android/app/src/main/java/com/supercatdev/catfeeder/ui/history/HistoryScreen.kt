@@ -18,82 +18,99 @@ import com.supercatdev.catfeeder.data.model.User
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.TimeZone
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     modifier: Modifier = Modifier,
-    viewModel: HistoryViewModel = hiltViewModel()
+    viewModel: HistoryViewModel = hiltViewModel(),
+    onNavigateToSettings: () -> Unit
     // onNavigateToPetManagement: () -> Unit // This would be needed for real navigation
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(modifier = modifier.fillMaxSize()) {
-        if (uiState.managedPets.isNotEmpty()) {
-            // Top control row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                PetSelector(
-                    pets = uiState.managedPets,
-                    selectedPetId = uiState.selectedPetId,
-                    onPetSelected = viewModel::onPetSelected,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                TimeRangeSelector(
-                    selectedTimeRange = uiState.timeRange,
-                    onTimeRangeSelected = viewModel::onTimeRangeSelected
-                )
-            }
-
-            // Content area
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else if (uiState.feedings.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(uiState.feedings) { feeding ->
-                            FeedingCard(feeding, uiState.users[feeding.userId])
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.history)) },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
                     }
-                } else {
-                    Text(text = stringResource(R.string.no_feeding_history))
                 }
-            }
-        } else if (!uiState.isLoading) {
-            // Empty state when no pets are managed
-            EmptyState(
-                message = stringResource(R.string.no_managed_pets_history_prompt),
-                buttonText = stringResource(R.string.go_to_pet_management),
-                onButtonClick = { /* onNavigateToPetManagement() */ }
             )
         }
+    ) { innerPadding ->
+        Column(modifier = modifier.fillMaxSize().padding(innerPadding)) {
+            if (uiState.managedPets.isNotEmpty()) {
+                // Top control row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    PetSelector(
+                        pets = uiState.managedPets,
+                        selectedPetId = uiState.selectedPetId,
+                        onPetSelected = viewModel::onPetSelected,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TimeRangeSelector(
+                        selectedTimeRange = uiState.timeRange,
+                        onTimeRangeSelected = viewModel::onTimeRangeSelected
+                    )
+                }
 
-        // Global loading indicator for initial pet fetch
-        if (uiState.isLoading && uiState.managedPets.isEmpty()) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator()
-            }
-        }
-
-        // Global error display
-        uiState.error?.let {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = stringResource(R.string.error_message, it),
-                    color = MaterialTheme.colorScheme.error
+                // Content area
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator()
+                    } else if (uiState.feedings.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.feedings) { feeding ->
+                                FeedingCard(feeding, uiState.users[feeding.userId])
+                            }
+                        }
+                    } else {
+                        Text(text = stringResource(R.string.no_feeding_history))
+                    }
+                }
+            } else if (!uiState.isLoading) {
+                // Empty state when no pets are managed
+                EmptyState(
+                    message = stringResource(R.string.no_managed_pets_history_prompt),
+                    buttonText = stringResource(R.string.go_to_pet_management),
+                    onButtonClick = { /* onNavigateToPetManagement() */ }
                 )
+            }
+
+            // Global loading indicator for initial pet fetch
+            if (uiState.isLoading && uiState.managedPets.isEmpty()) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Global error display
+            uiState.error?.let {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Text(
+                        text = stringResource(R.string.error_message, it),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
