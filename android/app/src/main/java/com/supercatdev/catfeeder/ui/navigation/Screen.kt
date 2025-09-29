@@ -10,4 +10,5 @@ sealed class Screen(val route: String, val icon: ImageVector? = null, val title:
     object History : Screen("history", Icons.Default.History, "History")
     object PetManagement : Screen("pet_management", title = "Pet Management")
     object Settings : Screen("settings", title = "Settings")
+    object EditProfile : Screen("edit_profile", title = "Edit Profile")
 }
