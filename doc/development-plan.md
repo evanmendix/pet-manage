@@ -49,16 +49,20 @@
         *   ✅ 實作餵食歷史記錄畫面（`HistoryScreen` + `HistoryViewModel`）
         *   ✅ 實作導航系統（Home/History 按鈕切換）
 
-### Phase 4: 進階功能 (未來計畫)
+### Phase 4: 進階功能
 
 *   **目標**: 擴充 App 功能，加入體重追蹤、相簿與提醒功能。
-*   **計畫任務**:
+*   **已完成任務**:
+    *   **使用者大頭照上傳**:
+        *   ✅ **後端 API**: 實作 `POST /users/profile` 端點，處理圖片儲存與資料庫更新。
+        *   ✅ **Android App**: 實作個人資料頁面的圖片選擇、上傳及顯示功能。
+*   **未來計畫**:
     1.  **API**:
         *   體重紀錄 API (`POST/GET /pets/{petId}/weights`)
-        *   相簿 API (`GET /albums/photos`)
+        *   寵物相簿 API
         *   FCM 推播通知功能
     2.  **Android App**:
-        *   相機拍照上傳流程
+        *   寵物相關的相機拍照上傳流程
         *   體重歷史與趨勢圖 UI
         *   寵物專屬相簿 UI
 

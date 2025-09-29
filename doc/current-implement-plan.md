@@ -11,6 +11,7 @@
     - `GET /api/v1/users/{userId}` - 取得使用者資料
     - `PUT /api/v1/users/{userId}` - 更新使用者資料
     - `POST /api/v1/users/batch` - 批量取得使用者資料
+    - `POST /api/v1/users/profile` - 上傳使用者大頭照
 - ✅ 寵物管理 API 端點:
     - `GET /api/v1/pets` - 取得寵物列表
     - `POST /api/v1/pets` - 新增寵物
@@ -30,6 +31,7 @@
     - 首次登入自動預填 Google 顯示名稱
     - 個人資料建立畫面
     - 設定頁面名稱編輯功能
+    - 設定頁面大頭照上傳與顯示
 - ✅ 寵物管理畫面：
     - 寵物列表顯示
     - 新增/刪除寵物功能
