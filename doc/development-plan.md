@@ -76,6 +76,6 @@
 
 *   **目標**: 將應用程式正式上線，並進行全面的端對端測試。
 *   **計畫任務**:
-    1.  **後端部署**: 將 `Ktor` 後端部署到正式環境（使用現有的 Docker 配置）
-    2.  **Android 發布**: 將 `App Bundle` 上傳到 `Google Play Store` 進行內部測試或公開發布
-    3.  **Beta 測試**: 招募使用者進行測試，收集回饋並修正問題
+    1.  **後端部署**: 詳細的部署指南請參考 [部署指南 (Deployment Guide)](./DEPLOYMENT.md)。
+    2.  **Android 發布**: 將 `App Bundle` 上傳到 `Google Play Store` 進行內部測試或公開發布。
+    3.  **Beta 測試**: 招募使用者進行測試，收集回饋並修正問題。
