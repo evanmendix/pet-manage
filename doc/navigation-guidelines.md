@@ -38,6 +38,16 @@
     1. 使用 Android 系統返回鍵。
     2. 點底部導覽列「首頁」圖示，直接回到首頁初始狀態（如上節所述）。
 
+## 設定（Settings）
+
+- **進入方式**：
+  - 由首頁或歷史紀錄頁右上角的設定圖示（`TopAppBar` Action）進入。
+- **編輯個人資料**：
+  - 在設定畫面的「帳號設定」區塊，點擊「編輯」圖示，即可導航至 `EditProfileScreen`。
+- **返回設定畫面**：
+  - 在 `EditProfileScreen` 中，可以透過 `TopAppBar` 的返回箭頭或系統返回鍵，返回到設定畫面。
+  - 成功儲存變更後，也會自動返回設定畫面。
+
 ## 國際化（i18n）
 
 - 文字資源放置於 `android/app/src/main/res/values/strings.xml`。
@@ -45,7 +55,10 @@
 
 ## 相關程式碼位置
 
-- `MainActivity.kt`：底部導覽列與 NavHost 的整合、首頁重置行為。
+- `MainActivity.kt`：底部導覽列與 NavHost 的整合、首頁重置行為、設定與編輯畫面的導航。
+- `ui/navigation/Screen.kt`: 定義所有畫面的路由。
 - `ui/feeding/FeedingViewModel.kt`：首頁資料載入與狀態管理。
 - `ui/history/HistoryViewModel.kt`：歷史紀錄資料載入與狀態管理。
-- `ui/feeding/FeedingScreen.kt`、`ui/history/HistoryScreen.kt`、`ui/pet_management/PetManagementScreen.kt`：對應頁面 UI。
+- `ui/settings/SettingsViewModel.kt`: 設定畫面的資料載入。
+- `ui/settings/EditProfileViewModel.kt`: 編輯個人資料畫面的邏輯處理。
+- `ui/feeding/FeedingScreen.kt`、`ui/history/HistoryScreen.kt`、`ui/pet_management/PetManagementScreen.kt`、`ui/settings/SettingsScreen.kt`、`ui/settings/EditProfileScreen.kt`：對應頁面 UI。
