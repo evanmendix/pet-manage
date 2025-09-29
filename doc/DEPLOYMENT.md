@@ -49,24 +49,26 @@
 ### 方法二：單獨運行後端 (本地開發)
 此方法讓您直接透過 IntelliJ 或終端機運行 Ktor 服務，方便進行快速開發與偵錯。
 
-1.  **設定儲存路徑 (首次執行)**:
-    -   為了讓後端服務知道在哪裡儲存圖片，您需要先設定 `IMAGE_STORAGE_PATH` 環境變數。
-    -   **開啟 PowerShell (以系統管理員身分)**，並在專案根目錄下執行腳本：
-        ```powershell
-        .\set-dev-env.ps1
-        ```
-    -   此腳本會為您的 Windows 帳戶建立一個指向 `C:\pet-manage` 的永久環境變數。
-    -   **重要**: 設定完畢後，請 **重新啟動** 您的 IntelliJ 或終端機，以確保新的環境變數生效。
+#### 步驟 1: 設定 IntelliJ 執行環境 (建議)
+直接在 IntelliJ 中設定環境變數是最可靠的方法。
+1.  在 IntelliJ 右上角，點擊 `Application` (或您目前的執行設定)，然後選擇 `Edit Configurations...`。
+2.  在「Run/Debug Configurations」視窗中，找到 `Environment variables` 欄位，點擊右側的圖示。
+3.  在彈出的視窗中，點擊 `+` (Add)，然後輸入：
+    -   **Name**: `IMAGE_STORAGE_PATH`
+    -   **Value**: `C:\pet-manage`
+4.  點擊 `OK` 儲存設定。現在，當您從 IntelliJ 執行後端時，它將會把圖片儲存在 `C:\pet-manage` 目錄下。
 
-2.  **啟動服務**: 在專案根目錄下，執行以下指令：
-    ```bash
-    ./gradlew run
-    ```
+#### 步驟 2: 啟動服務
+設定好環境變數後，您可以直接點擊 IntelliJ 的「執行」(Run) 按鈕，或在終端機中執行以下指令：
+```bash
+./gradlew run
+```
 
-3.  **移除環境變數 (可選)**: 如果您未來想清理開發環境，可以執行以下腳本來移除環境變數：
-    ```powershell
-    .\remove-dev-env.ps1
-    ```
+#### 備用方法：使用 PowerShell 腳本
+如果您偏好使用終端機，我們也提供了 PowerShell 腳本來設定系統層級的環境變數。
+- **設定變數**: 以系統管理員身分開啟 PowerShell，並執行 `.\set-dev-env.ps1`。
+- **移除變數**: 執行 `.\remove-dev-env.ps1`。
+- **注意**: 使用此方法後，您 **必須重新啟動** IntelliJ 或您的終端機，變更才會生效。
 ---
 
 ## 4. 連接 Android 模擬器

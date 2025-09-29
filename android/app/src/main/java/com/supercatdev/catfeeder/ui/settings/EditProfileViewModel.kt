@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 data class EditProfileUiState(
     val userName: String = "",
@@ -24,7 +25,8 @@ data class EditProfileUiState(
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    @Named("BaseImageUrl") private val baseImageUrl: String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -44,7 +46,7 @@ class EditProfileViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             userName = user?.name ?: "",
-                            profilePictureUrl = user?.profilePictureUrl,
+                            profilePictureUrl = user?.profilePictureUrl?.let { path -> "$baseImageUrl$path" },
                             isLoading = false
                         )
                     }
@@ -91,10 +93,10 @@ class EditProfileViewModel @Inject constructor(
             }
 
             try {
-                val newUrl = userRepository.uploadProfilePicture(firebaseUser.uid, uri)
+                val relativeUrl = userRepository.uploadProfilePicture(firebaseUser.uid, uri)
                 _uiState.update {
                     it.copy(
-                        profilePictureUrl = newUrl,
+                        profilePictureUrl = "$baseImageUrl$relativeUrl",
                         isLoading = false
                     )
                 }

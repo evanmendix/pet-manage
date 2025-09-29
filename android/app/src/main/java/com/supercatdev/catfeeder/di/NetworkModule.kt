@@ -13,13 +13,15 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://10.0.2.2:5070/api/v1/"
+    private const val BASE_API_URL = "http://10.0.2.2:5070/api/v1/"
+    private const val BASE_IMAGE_URL = "http://10.0.2.2:5070"
 
     @Provides
     @Singleton
@@ -41,9 +43,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("BaseImageUrl")
+    fun provideBaseImageUrl(): String = BASE_IMAGE_URL
+
+    @Provides
+    @Singleton
     fun provideRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BASE_API_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
