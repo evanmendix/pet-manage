@@ -37,4 +37,7 @@
     <string name="save">儲存</string>
     <string name="update_success">更新成功</string>
     <string name="account_settings">帳號設定</string>
+    <string name="edit_profile">編輯個人資料</string>
+    <string name="navigate_up">向上導覽</string>
+    <string name="user_email">電子郵件</string>
 </resources>

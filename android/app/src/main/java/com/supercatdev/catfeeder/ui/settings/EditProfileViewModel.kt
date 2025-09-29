@@ -12,27 +12,23 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class SettingsUiState(
+data class EditProfileUiState(
     val userName: String = "",
-    val userEmail: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isUpdateSuccess: Boolean = false
 )
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class EditProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditProfileUiState())
+    val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
 
     init {
-        loadCurrentUser()
-    }
-
-    fun refresh() {
         loadCurrentUser()
     }
 
@@ -46,7 +42,6 @@ class SettingsViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             userName = user?.name ?: "",
-                            userEmail = firebaseUser.email ?: "",
                             isLoading = false
                         )
                     }
@@ -55,6 +50,30 @@ class SettingsViewModel @Inject constructor(
                 }
             } else {
                 _uiState.update { it.copy(error = "User not logged in", isLoading = false) }
+            }
+        }
+    }
+
+    fun updateUserName(name: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, isUpdateSuccess = false) }
+            val firebaseUser = authRepository.getCurrentUser()
+            if (firebaseUser == null) {
+                _uiState.update { it.copy(error = "User not logged in", isLoading = false) }
+                return@launch
+            }
+
+            try {
+                userRepository.updateUser(firebaseUser.uid, name)
+                _uiState.update {
+                    it.copy(
+                        userName = name,
+                        isLoading = false,
+                        isUpdateSuccess = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
             }
         }
     }
