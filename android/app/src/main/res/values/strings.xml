@@ -43,4 +43,5 @@
     <string name="edit_profile">編輯個人資料</string>
     <string name="navigate_up">向上導覽</string>
     <string name="user_email">電子郵件</string>
+    <string name="profile_picture">大頭照</string>
 </resources>

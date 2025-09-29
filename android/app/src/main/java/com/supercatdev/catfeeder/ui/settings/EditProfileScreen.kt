@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -39,6 +40,8 @@ fun EditProfileScreen(
             viewModel.uploadProfilePicture(it)
         }
     }
+
+    val defaultPainter = rememberVectorPainter(image = Icons.Default.Person)
 
     LaunchedEffect(uiState.userName) {
         userName = uiState.userName
@@ -88,22 +91,8 @@ fun EditProfileScreen(
                     contentDescription = stringResource(R.string.profile_picture),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
-                    placeholder = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Default Profile Icon",
-                            modifier = Modifier.size(60.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    error = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Default Profile Icon",
-                            modifier = Modifier.size(60.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    placeholder = defaultPainter,
+                    error = defaultPainter
                 )
             }
             Spacer(modifier = Modifier.height(24.dp))
