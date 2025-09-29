@@ -9,6 +9,8 @@ import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import io.ktor.http.content.*
+import java.io.File
 
 class UserService {
 
@@ -114,6 +116,52 @@ class UserService {
                         )
                     }
             }
+        }
+    }
+
+    /**
+     * Handles the upload of a user's profile picture.
+     * This function saves the file to a designated storage location and updates the user's record
+     * in the PostgreSQL database with the URL of the new picture.
+     */
+    suspend fun uploadProfilePicture(userId: String, fileItem: PartData.FileItem): String? {
+        // Define the base storage directory. This path corresponds to the volume mount in docker-compose.yml.
+        val storagePath = "/storage/users/profile"
+        val profileDir = File(storagePath)
+
+        // Create the directory if it doesn't exist.
+        if (!profileDir.exists()) {
+            profileDir.mkdirs()
+        }
+
+        // Generate a unique filename using the user's ID to ensure one profile picture per user.
+        val fileExtension = File(fileItem.originalFileName ?: "unknown").extension
+        val newFileName = "$userId.$fileExtension"
+        val file = File(profileDir, newFileName)
+
+        // Save the uploaded file.
+        fileItem.streamProvider().use { input ->
+            file.outputStream().buffered().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        // Construct the relative URL path to be stored in the database.
+        val fileUrl = "/users/profile/$newFileName"
+
+        // Update the user's profilePictureUrl in the PostgreSQL database.
+        val rowsUpdated = dbQuery {
+            Users.update({ Users.id eq userId }) {
+                it[profilePictureUrl] = fileUrl
+            }
+        }
+
+        return if (rowsUpdated > 0) {
+            fileUrl
+        } else {
+            // Optionally handle the case where the user ID does not exist in the database.
+            // For now, returning null indicates failure.
+            null
         }
     }
 }
