@@ -32,7 +32,7 @@ WORKDIR /app
 COPY --from=builder /home/gradle/project/backend/build/libs/backend-all.jar ./application.jar
 
 # Expose the port the application will run on
-EXPOSE 8080
+EXPOSE 5070
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "application.jar"]

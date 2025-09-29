@@ -39,17 +39,26 @@ backend/
 
 ## 3. API 端點設計 (API Endpoint Design)
 
-API 端點維持不變，前綴為 `/api/v1`。
+API 端點前綴為 `/api/v1`，後端統一運行在 **5070 端口**。
 
-*   `POST /users`: 建立新使用者。
-*   `PUT /users/{userId}`: 更新使用者資訊。
-*   `GET /pets`: 取得使用者所屬家庭的所有寵物列表。
-*   `POST /pets`: 新增一隻寵物，並將自己設為管理者。
-*   `POST /pets/{petId}/managers`: 將自己新增為特定寵物的管理者。
-*   `DELETE /pets/{petId}/managers`: 將自己從特定寵物的管理者名單中移除。
-*   `POST /feedings`: 新增餵食紀錄。
-*   `GET /feedings?petId=...`: 取得特定寵物的餵食紀錄。
-*   `GET /feedings/status/current?petId=...`: 取得特定寵物當前的餵食狀態。
+### 使用者管理
+*   `POST /users`: 建立新使用者
+*   `GET /users/{userId}`: 取得使用者資訊
+*   `PUT /users/{userId}`: 更新使用者資訊
+*   `POST /users/batch`: 批量取得使用者資料
+
+### 寵物管理
+*   `GET /pets`: 取得使用者所屬家庭的所有寵物列表
+*   `POST /pets`: 新增一隻寵物，並將自己設為管理者
+*   `DELETE /pets/{petId}`: 刪除寵物
+*   `POST /pets/{petId}/managers`: 將自己新增為特定寵物的管理者
+*   `DELETE /pets/{petId}/managers`: 將自己從特定寵物的管理者名單中移除
+
+### 餵食記錄
+*   `GET /feedings?petId={petId}`: 取得特定寵物的餵食紀錄（可選 startTime, endTime 過濾）
+*   `POST /feedings`: 新增餵食紀錄
+*   `POST /feedings/overwrite`: 覆蓋上一餐記錄
+*   `GET /feedings/status/current?petId={petId}`: 取得特定寵物當前的餵食狀態
 
 (未來功能)
 *   `POST /pets/{petId}/weights`: 新增體重紀錄。

@@ -5,7 +5,7 @@ services:
     build: .
     container_name: pet_feeder_backend
     ports:
-      - "5070:8080" # Map host port 5070 to container port 8080
+      - "5070:5070" # Map host port 5070 to container port 5070
     environment:
       - DB_JDBC_URL=jdbc:postgresql://db:5432/pet_feeder_db
       - DB_USER=root

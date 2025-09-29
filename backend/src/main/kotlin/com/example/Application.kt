@@ -14,7 +14,7 @@ import io.ktor.server.netty.*
 fun main() {
     FirebaseAdmin.init()
     DatabaseFactory.init()
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 5070, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
