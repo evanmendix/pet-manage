@@ -34,7 +34,7 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun updateUser(userId: String, name: String): User {
-        val request = UpdateUserRequest(name = name)
+        val request = UpdateUserRequest(name = name, profilePictureUrl = null)
         val updatedUser = userApiService.updateUser(userId, request)
         userCache[userId] = updatedUser
         return updatedUser

@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateUserRequest(
-    val name: String
+    val name: String?,
+    val profilePictureUrl: String?
 )
