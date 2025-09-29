@@ -1,38 +1,26 @@
 package com.supercatdev.catfeeder.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.supercatdev.catfeeder.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +32,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val defaultPainter = rememberVectorPainter(image = Icons.Default.Person)
 
     LaunchedEffect(lifecycleOwner.lifecycle) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -66,6 +55,21 @@ fun SettingsScreen(
             // Account Section
             SectionCard(
                 title = stringResource(R.string.account_settings),
+                leadingIcon = {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(uiState.profilePictureUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = stringResource(R.string.profile_picture),
+                        placeholder = defaultPainter,
+                        error = defaultPainter,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                    )
+                },
                 action = {
                     IconButton(onClick = onNavigateToEditProfile) {
                         Icon(
@@ -97,6 +101,7 @@ fun SettingsScreen(
 @Composable
 private fun SectionCard(
     title: String,
+    leadingIcon: (@Composable () -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
@@ -107,10 +112,12 @@ private fun SectionCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                leadingIcon?.invoke()
+                Spacer(modifier = Modifier.width(if (leadingIcon != null) 16.dp else 0.dp))
                 Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.weight(1f))
                 action?.invoke()
             }
             Spacer(modifier = Modifier.height(8.dp))

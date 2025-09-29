@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 data class SettingsUiState(
     val userName: String = "",
     val userEmail: String = "",
+    val profilePictureUrl: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -22,7 +24,8 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    @Named("BaseImageUrl") private val baseImageUrl: String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -47,6 +50,7 @@ class SettingsViewModel @Inject constructor(
                         it.copy(
                             userName = user?.name ?: "",
                             userEmail = firebaseUser.email ?: "",
+                            profilePictureUrl = user?.profilePictureUrl?.let { path -> "$baseImageUrl$path" },
                             isLoading = false
                         )
                     }
