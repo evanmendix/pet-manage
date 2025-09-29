@@ -1,5 +1,6 @@
 package com.supercatdev.catfeeder.ui.settings
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.supercatdev.catfeeder.data.AuthRepository
@@ -14,6 +15,7 @@ import javax.inject.Inject
 
 data class EditProfileUiState(
     val userName: String = "",
+    val profilePictureUrl: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isUpdateSuccess: Boolean = false
@@ -42,6 +44,7 @@ class EditProfileViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             userName = user?.name ?: "",
+                            profilePictureUrl = user?.profilePictureUrl,
                             isLoading = false
                         )
                     }
@@ -70,6 +73,29 @@ class EditProfileViewModel @Inject constructor(
                         userName = name,
                         isLoading = false,
                         isUpdateSuccess = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+
+    fun uploadProfilePicture(uri: Uri) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val firebaseUser = authRepository.getCurrentUser()
+            if (firebaseUser == null) {
+                _uiState.update { it.copy(error = "User not logged in", isLoading = false) }
+                return@launch
+            }
+
+            try {
+                val newUrl = userRepository.uploadProfilePicture(firebaseUser.uid, uri)
+                _uiState.update {
+                    it.copy(
+                        profilePictureUrl = newUrl,
+                        isLoading = false
                     )
                 }
             } catch (e: Exception) {

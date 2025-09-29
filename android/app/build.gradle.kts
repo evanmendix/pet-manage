@@ -76,6 +76,9 @@ dependencies {
     kapt("com.google.dagger:dagger-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
