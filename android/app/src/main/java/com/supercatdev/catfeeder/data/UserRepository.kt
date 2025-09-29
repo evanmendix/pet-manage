@@ -3,6 +3,7 @@ package com.supercatdev.catfeeder.data
 import com.supercatdev.catfeeder.data.model.BatchUserRequest
 import com.supercatdev.catfeeder.data.model.User
 import com.supercatdev.catfeeder.data.network.UserApiService
+import com.supercatdev.catfeeder.data.network.dto.UpdateUserRequest
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,5 +31,12 @@ class UserRepository @Inject constructor(
         }
 
         return userCache.filterKeys { it in distinctIds }
+    }
+
+    suspend fun updateUser(userId: String, name: String): User {
+        val request = UpdateUserRequest(name = name)
+        val updatedUser = userApiService.updateUser(userId, request)
+        userCache[userId] = updatedUser
+        return updatedUser
     }
 }
