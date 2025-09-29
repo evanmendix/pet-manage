@@ -125,9 +125,9 @@ class UserService {
      * in the PostgreSQL database with the URL of the new picture.
      */
     suspend fun uploadProfilePicture(userId: String, fileItem: PartData.FileItem): String? {
-        // Define the base storage directory. This path corresponds to the volume mount in docker-compose.yml.
-        val storagePath = "/storage/users/profile"
-        val profileDir = File(storagePath)
+        // Read the base storage path from an environment variable, with a fallback to "/storage".
+        val baseStoragePath = System.getenv("IMAGE_STORAGE_PATH") ?: "/storage"
+        val profileDir = File(baseStoragePath, "users/profile")
 
         // Create the directory if it doesn't exist.
         if (!profileDir.exists()) {
@@ -146,8 +146,8 @@ class UserService {
             }
         }
 
-        // Construct the relative URL path to be stored in the database.
-        val fileUrl = "/users/profile/$newFileName"
+        // The web-accessible URL path. This must match the static route configured in Routing.kt.
+        val fileUrl = "/storage/users/profile/$newFileName"
 
         // Update the user's profilePictureUrl in the PostgreSQL database.
         val rowsUpdated = dbQuery {

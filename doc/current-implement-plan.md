@@ -41,22 +41,6 @@
     - 餵食歷史記錄畫面（History Screen）
 - ✅ 全中文介面
 
-## 技術架構決策
-
-### 網絡配置
-- **後端端口**: 統一使用 5070 端口（開發與部署環境一致）
-- **Android 模擬器**: 使用 `10.0.2.2:5070` 連接宿主機
-- **Docker 部署**: `5070:5070` 端口映射
-
-### Firebase 角色定位
-- **Authentication**: 使用者身份驗證與 ID Token 生成
-- **Google SSO**: 整合 Google 登入，取得使用者基本資料
-- **Future FCM**: 預留推播通知功能
-
-### 資料庫架構
-- **Exposed**: Kotlin ORM 函式庫
-- **優勢**: 支援複雜關聯查詢、ACID 特性、成熟穩定
-
 ## 待實作功能
 
 ### 未來計畫
@@ -65,16 +49,3 @@
 - ❌ 推播通知功能
 - ❌ App Widgets（桌面小工具）
 - ❌ App Shortcuts（長按圖示快捷選單）
-
-## 部署配置
-
-### 開發環境
-- **後端**: 直接運行 `./gradlew run` 或使用 Docker Compose
-- **端口**: 5070
-- **資料庫**: PostgreSQL (Docker: port 5071)
-- **Android**: 模擬器連接 `10.0.2.2:5070`
-
-### 生產環境
-- **Docker**: 使用 `docker-compose.yml` 部署
-- **端口映射**: `5070:5070`
-- **環境變數**: 透過 Docker Compose 設定資料庫連接
