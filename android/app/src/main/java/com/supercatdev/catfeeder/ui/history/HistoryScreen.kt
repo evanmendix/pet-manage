@@ -37,7 +37,7 @@ fun HistoryScreen(
                 title = { Text(text = stringResource(R.string.history)) },
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.settings_content_description))
                     }
                 }
             )
@@ -184,13 +184,13 @@ fun TimeRangeSelector(selectedTimeRange: TimeRange, onTimeRangeSelected: (TimeRa
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         TimeRangeButton(
-            text = "24H",
+            text = stringResource(R.string.time_range_24h),
             isSelected = selectedTimeRange == TimeRange.LAST_24_HOURS,
             onClick = { onTimeRangeSelected(TimeRange.LAST_24_HOURS) }
         )
         Spacer(modifier = Modifier.width(4.dp))
         TimeRangeButton(
-            text = "7D",
+            text = stringResource(R.string.time_range_7d),
             isSelected = selectedTimeRange == TimeRange.LAST_7_DAYS,
             onClick = { onTimeRangeSelected(TimeRange.LAST_7_DAYS) }
         )

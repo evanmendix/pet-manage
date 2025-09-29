@@ -18,7 +18,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.supercatdev.catfeeder.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +29,7 @@ fun SettingsScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Settings") })
+            TopAppBar(title = { Text(text = stringResource(R.string.settings)) })
         }
     ) { innerPadding ->
         Column(
@@ -37,29 +39,13 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Account Section (placeholder)
-            SectionCard(title = "Account") {
-                Text(
-                    text = "Set your name and profile picture here (coming soon)",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            // App Section (placeholder)
-            SectionCard(title = "App") {
-                Text(
-                    text = "Theme and language settings (coming soon)",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
             // Links Section
-            SectionCard(title = "Links") {
+            SectionCard(title = stringResource(R.string.links)) {
                 Button(
                     onClick = onNavigateToPetManagement,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Go to Pet Management")
+                    Text(text = stringResource(R.string.go_to_pet_management))
                 }
             }
 
