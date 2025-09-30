@@ -125,8 +125,14 @@ class UserService {
      * in the PostgreSQL database with the URL of the new picture.
      */
     suspend fun uploadProfilePicture(userId: String, fileItem: PartData.FileItem): String? {
-        // Read the base storage path from an environment variable, with a fallback to "/storage".
-        val baseStoragePath = System.getenv("IMAGE_STORAGE_PATH") ?: "/storage"
+        // Use a fixed storage path that works for both Windows dev and Docker
+        // Windows dev: C:\AppData\pet-manage\storage
+        // Docker: /storage (mapped to C:\AppData\pet-manage\storage on host)
+        val baseStoragePath = if (System.getProperty("os.name").contains("Windows", ignoreCase = true)) {
+            "C:\\AppData\\pet-manage\\storage"
+        } else {
+            "/storage"
+        }
         val profileDir = File(baseStoragePath, "users/profile")
 
         // Create the directory if it doesn't exist.

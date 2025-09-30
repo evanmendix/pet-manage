@@ -22,6 +22,10 @@ out/
 *.apks
 *.dex
 
+# Kotlin/Java build outputs
+backend/bin/
+backend/out/
+
 # OS-specific files
 .DS_Store
 *~

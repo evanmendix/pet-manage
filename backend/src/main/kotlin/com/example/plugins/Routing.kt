@@ -17,9 +17,15 @@ fun Application.configureRouting() {
         }
 
         // Static file serving for uploaded images.
-        // This makes files under the physical path (defined by IMAGE_STORAGE_PATH)
-        // accessible via the "/storage" URL path.
-        staticFiles("/storage", File(System.getenv("IMAGE_STORAGE_PATH") ?: "/storage")) {
+        // Use a fixed storage path that works for both Windows dev and Docker
+        // Windows dev: C:\AppData\pet-manage\storage
+        // Docker: /storage (mapped to C:\AppData\pet-manage\storage on host)
+        val storagePath = if (System.getProperty("os.name").contains("Windows", ignoreCase = true)) {
+            "C:\\AppData\\pet-manage\\storage"
+        } else {
+            "/storage"
+        }
+        staticFiles("/storage", File(storagePath)) {
             enableAutoHeadResponse()
         }
 

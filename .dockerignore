@@ -1,18 +1,51 @@
-# Ignore git files
-.git
+# Docker ignore file for pet-manage project
+# Optimized for backend service build
+
+# Version control
+.git/
 .gitignore
 
-# Ignore docker files
-.dockerignore
-Dockerfile
-docker-compose.yml
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
 
-# Ignore local build artifacts
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# OS files
+.DS_Store
+Thumbs.db
+*~
 
-# Ignore local config files
+# Build outputs (但保留必要的 gradle 檔案)
+**/build/
+**/out/
+**/.gradle/
+**/.kotlin/
+**/bin/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+
+# Android module (後端不需要)
+android/
+
+# Development files
 .env
+local.properties
+
+# Documentation (減少 image size)
+doc/
+*.md
+
+# Development scripts (不需要在 container 中)
+set-dev-env.ps1
+remove-dev-env.ps1
+
+# 明確排除 docker-compose.yml (避免在 container 中)
+docker-compose.yml

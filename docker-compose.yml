@@ -11,8 +11,10 @@ services:
       - DB_USER=root
       - DB_PASSWORD=secret
       - IMAGE_STORAGE_PATH=/storage
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/firebase.json
     volumes:
-      - /c/pet-manage:/storage
+      - C:/AppData/pet-manage/storage:/storage
+      - C:/Environment/Firebase/pet-manage-wu-firebase-adminsdk-fbsvc-e1be61041a.json:/run/secrets/firebase.json:ro
     depends_on:
       - db
     restart: unless-stopped
