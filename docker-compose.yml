@@ -11,7 +11,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=secret
     volumes:
-      - ./storage:/storage
+      - /c/pet-manage:/storage
     depends_on:
       - db
     restart: unless-stopped
